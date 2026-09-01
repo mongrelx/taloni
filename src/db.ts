@@ -264,6 +264,30 @@ export interface MeterReading {
   notes: string
 }
 
+// --- Rakennus- ja pintamateriaalit ---
+
+export type MaterialCategory =
+  | 'floor' // Lattia (parketti, laatta, laminaatti, vinyl, betoni)
+  | 'roof' // Katto (peltikatto, tiilikatto, turvekatto, päre)
+  | 'wall_exterior' // Ulkoseinä (hirsi, lauta, kivi, rappaus, levy)
+  | 'wall_interior' // Sisäseinä (tapetti, maali, levy, laatta)
+  | 'paint' // Maali (värikoodi, valmistaja, tuote, pinta)
+  | 'window' // Ikkuna
+  | 'door' // Ovi
+  | 'other' // Muu
+
+export interface BuildingMaterial {
+  id: number
+  property_id: number
+  category: MaterialCategory // Materiaalikategoria
+  location: string // Sijainti kiinteistössä, esim. "Olohuone", "Katto yleinen"
+  material: string // Materiaali tai tuotenimi, esim. "Koivu parketti 14mm"
+  manufacturer: string // Valmistaja, esim. "Karelia", "Teknos"
+  color_code: string // Värikoodi, esim. "NCS S 0500-N" tai "Punainen RR29"
+  applied_date: string // Asennus-/maalauspäivämäärä (YYYY-MM-DD tai tyhjä)
+  notes: string // Vapaat huomiot: määrät, ostopaikka, takuu jne.
+}
+
 let dbInstance: DatabaseSync | null = null
 
 // Tietokantatiedoston polku (~/.taloni/taloni.db). Käytetään mm. varmuuskopioinnissa.
@@ -502,6 +526,20 @@ export function initDb(): DatabaseSync {
       meter_type TEXT NOT NULL DEFAULT 'electric' CHECK(meter_type IN ('electric', 'water')),
       reading REAL NOT NULL DEFAULT 0,
       reading_date TEXT NOT NULL,
+      notes TEXT NOT NULL DEFAULT ''
+    );
+  `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS building_materials (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      category TEXT NOT NULL DEFAULT 'other' CHECK(category IN ('floor', 'roof', 'wall_exterior', 'wall_interior', 'paint', 'window', 'door', 'other')),
+      location TEXT NOT NULL DEFAULT '',
+      material TEXT NOT NULL DEFAULT '',
+      manufacturer TEXT NOT NULL DEFAULT '',
+      color_code TEXT NOT NULL DEFAULT '',
+      applied_date TEXT NOT NULL DEFAULT '',
       notes TEXT NOT NULL DEFAULT ''
     );
   `)
@@ -1440,6 +1478,41 @@ function seedData(db: DatabaseSync) {
     0,
   )
 
+  const insertMaterial = db.prepare(`
+    INSERT INTO building_materials (property_id, category, location, material, manufacturer, color_code, applied_date, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+  insertMaterial.run(
+    metsaId,
+    'paint',
+    'Ulkoseinät',
+    'Punamulta / Keittomaali',
+    'Virtasen Maalitehdas',
+    'Falu rödfärg / Punainen',
+    '2022-07-15',
+    'Perinteinen keittomaali hirsipinnalle',
+  )
+  insertMaterial.run(
+    metsaId,
+    'roof',
+    'Katto',
+    'Peltikatto (Kourukate)',
+    'Ruukki',
+    'Tummanharmaa RR23',
+    '2015-08-10',
+    'Konesaumattu peltikate',
+  )
+  insertMaterial.run(
+    jarviId,
+    'floor',
+    'Tupa / Olohuone',
+    'Mäntylautalattia 28mm',
+    'Puukeskus',
+    'Kirkas öljyvaha',
+    '2020-06-01',
+    'Lipeäkäsitelty ja öljyvahattu',
+  )
+
   // Nuohoustodistus liitettynä Metsäpirtin varaavaan takkaan (ensimmäinen fireplace-rivi)
   const firstMetsaFireplace = db
     .prepare(
@@ -1691,6 +1764,7 @@ export type DeletableTable =
   | 'contacts'
   | 'documents'
   | 'meter_readings'
+  | 'building_materials'
 
 export function deleteRow(table: DeletableTable, id: number): void {
   const db = initDb()
@@ -2469,5 +2543,57 @@ export function updateMeterReading(m: MeterReading): void {
     m.reading_date,
     m.notes,
     m.id,
+  )
+}
+
+export function getBuildingMaterials(propertyId?: number): BuildingMaterial[] {
+  const db = initDb()
+  const query = propertyId
+    ? db.prepare(
+        'SELECT * FROM building_materials WHERE property_id = ? ORDER BY category ASC, location ASC',
+      )
+    : db.prepare(
+        'SELECT * FROM building_materials ORDER BY category ASC, location ASC',
+      )
+  return (
+    propertyId ? query.all(propertyId) : query.all()
+  ) as BuildingMaterial[]
+}
+
+export function addBuildingMaterial(b: Omit<BuildingMaterial, 'id'>): void {
+  const db = initDb()
+  const stmt = db.prepare(`
+    INSERT INTO building_materials (property_id, category, location, material, manufacturer, color_code, applied_date, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+  stmt.run(
+    b.property_id,
+    b.category,
+    b.location,
+    b.material,
+    b.manufacturer,
+    b.color_code,
+    b.applied_date,
+    b.notes,
+  )
+}
+
+export function updateBuildingMaterial(b: BuildingMaterial): void {
+  const db = initDb()
+  const stmt = db.prepare(`
+    UPDATE building_materials
+    SET property_id = ?, category = ?, location = ?, material = ?, manufacturer = ?, color_code = ?, applied_date = ?, notes = ?
+    WHERE id = ?
+  `)
+  stmt.run(
+    b.property_id,
+    b.category,
+    b.location,
+    b.material,
+    b.manufacturer,
+    b.color_code,
+    b.applied_date,
+    b.notes,
+    b.id,
   )
 }

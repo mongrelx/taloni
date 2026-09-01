@@ -464,3 +464,34 @@ test('heating systems and contacts CRUD round-trip', () => {
   assert.equal(updatedContact?.phone, '040-7654321')
   db.deleteRow('contacts', contact!.id)
 })
+
+test('building materials CRUD round-trip', () => {
+  const pid = db.getProperties()[0]!.id
+  db.addBuildingMaterial({
+    property_id: pid,
+    category: 'paint',
+    location: 'Sauna',
+    material: 'Saunasuoja',
+    manufacturer: 'Tikkurila',
+    color_code: 'Supi Musta',
+    applied_date: '2026-06-01',
+    notes: '2 kerrosta',
+  })
+  const materials = db.getBuildingMaterials(pid)
+  const mat = materials.find((m) => m.material === 'Saunasuoja')
+  assert.ok(mat)
+  assert.equal(mat?.manufacturer, 'Tikkurila')
+
+  db.updateBuildingMaterial({
+    ...mat!,
+    notes: '3 kerrosta',
+  })
+  const updated = db.getBuildingMaterials(pid).find((m) => m.id === mat!.id)
+  assert.equal(updated?.notes, '3 kerrosta')
+
+  db.deleteRow('building_materials', mat!.id)
+  assert.equal(
+    db.getBuildingMaterials(pid).some((m) => m.id === mat!.id),
+    false,
+  )
+})

@@ -1,6 +1,7 @@
 // Raportointi & vienti — vuosikooste, vuokratuloraportti (verottajalle) ja CSV-vienti.
 import {
   getBookings,
+  getBuildingMaterials,
   getProperties,
   getTasks,
   getTransactions,
@@ -166,6 +167,9 @@ export function buildCsvExports(): Record<string, string> {
     'tasks.csv': toCSV(getTasks() as unknown as Record<string, unknown>[]),
     'properties.csv': toCSV(
       getProperties() as unknown as Record<string, unknown>[],
+    ),
+    'building_materials.csv': toCSV(
+      getBuildingMaterials() as unknown as Record<string, unknown>[],
     ),
   }
 }
