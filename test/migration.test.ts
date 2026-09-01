@@ -1,9 +1,9 @@
-import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRequire } from 'module'
-import { mkdtempSync, mkdirSync } from 'fs'
-import { tmpdir } from 'os'
-import { join } from 'path'
+import { mkdirSync, mkdtempSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { test } from 'node:test'
 
 const require = createRequire(import.meta.url)
 const { DatabaseSync } = require('node:sqlite')
@@ -16,10 +16,18 @@ mkdirSync(join(home, '.taloni'), { recursive: true })
 const dbPath = join(home, '.taloni', 'taloni.db')
 
 const old = new DatabaseSync(dbPath)
-old.exec(`CREATE TABLE properties (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, kiinteistotunnus TEXT NOT NULL, water_source TEXT NOT NULL, build_year INTEGER NOT NULL, location TEXT NOT NULL);`)
-old.exec(`CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, property_id INTEGER NOT NULL, title TEXT NOT NULL, status TEXT NOT NULL, priority TEXT NOT NULL, due_date TEXT NOT NULL, category TEXT NOT NULL, cost REAL DEFAULT 0);`)
-old.exec(`INSERT INTO properties (name, kiinteistotunnus, water_source, build_year, location) VALUES ('Vanha talo','1-1-1-1','well',1950,'Sysmä');`)
-old.exec(`INSERT INTO tasks (property_id, title, status, priority, due_date, category, cost) VALUES (1,'Vanha tehtävä','pending','high','2026-06-01','Vesi',50);`)
+old.exec(
+  `CREATE TABLE properties (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, kiinteistotunnus TEXT NOT NULL, water_source TEXT NOT NULL, build_year INTEGER NOT NULL, location TEXT NOT NULL);`,
+)
+old.exec(
+  `CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, property_id INTEGER NOT NULL, title TEXT NOT NULL, status TEXT NOT NULL, priority TEXT NOT NULL, due_date TEXT NOT NULL, category TEXT NOT NULL, cost REAL DEFAULT 0);`,
+)
+old.exec(
+  `INSERT INTO properties (name, kiinteistotunnus, water_source, build_year, location) VALUES ('Vanha talo','1-1-1-1','well',1950,'Sysmä');`,
+)
+old.exec(
+  `INSERT INTO tasks (property_id, title, status, priority, due_date, category, cost) VALUES (1,'Vanha tehtävä','pending','high','2026-06-01','Vesi',50);`,
+)
 old.exec(`PRAGMA user_version = 1`)
 old.close()
 

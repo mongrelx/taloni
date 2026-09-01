@@ -44,17 +44,32 @@ export function isTxType(s: string): s is TxType {
 }
 
 // Kokoaa validointivirheet listaksi; tyhjä lista = kelvollinen.
-export function validateTaskInput(input: { title: string; priority: string; cost: string }): string[] {
+export function validateTaskInput(input: {
+  title: string
+  priority: string
+  cost: string
+}): string[] {
   const errors: string[] = []
   if (!input.title.trim()) errors.push('Otsikko ei voi olla tyhjä')
-  if (!isPriority(input.priority)) errors.push(`Kiireellisyys tulee olla low|medium|high (oli: ${input.priority})`)
-  if (parseAmount(input.cost) === null) errors.push(`Kustannuksen tulee olla ei-negatiivinen luku (oli: ${input.cost})`)
+  if (!isPriority(input.priority))
+    errors.push(
+      `Kiireellisyys tulee olla low|medium|high (oli: ${input.priority})`,
+    )
+  if (parseAmount(input.cost) === null)
+    errors.push(
+      `Kustannuksen tulee olla ei-negatiivinen luku (oli: ${input.cost})`,
+    )
   return errors
 }
 
-export function validateTransactionInput(input: { amount: string; type: string }): string[] {
+export function validateTransactionInput(input: {
+  amount: string
+  type: string
+}): string[] {
   const errors: string[] = []
-  if (parseAmount(input.amount) === null) errors.push(`Summan tulee olla ei-negatiivinen luku (oli: ${input.amount})`)
-  if (!isTxType(input.type)) errors.push(`Tyypin tulee olla income|expense (oli: ${input.type})`)
+  if (parseAmount(input.amount) === null)
+    errors.push(`Summan tulee olla ei-negatiivinen luku (oli: ${input.amount})`)
+  if (!isTxType(input.type))
+    errors.push(`Tyypin tulee olla income|expense (oli: ${input.type})`)
   return errors
 }

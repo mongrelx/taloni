@@ -1,8 +1,8 @@
-import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync } from 'fs'
-import { tmpdir } from 'os'
-import { join } from 'path'
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { before, test } from 'node:test'
 
 process.env.HOME = mkdtempSync(join(tmpdir(), 'taloni-report-'))
 
@@ -29,13 +29,20 @@ test('rentalIncomeReport sums Vuokraus income per property', () => {
   const r = report.rentalIncomeReport(2026)
   // Siemenaineiston vuokratulot: Metsäpirtti 650 + Pappila 1200 = 1850
   assert.equal(r.total, 1850)
-  assert.ok(r.rows.every(row => row.rentalIncome > 0 || row.nights > 0))
+  assert.ok(r.rows.every((row) => row.rentalIncome > 0 || row.nights > 0))
 })
 
 test('rental report reflects income recorded from a booking', () => {
-  const pid = db.getProperties().find(p => p.name === 'Järvenranta')!.id
+  const pid = db.getProperties().find((p) => p.name === 'Järvenranta')!.id
   const before = report.rentalIncomeReport(2026).total
-  db.addTransaction({ property_id: pid, type: 'income', category: 'Vuokraus', amount: 500, date: '2026-08-15', description: 'Testivuokra' })
+  db.addTransaction({
+    property_id: pid,
+    type: 'income',
+    category: 'Vuokraus',
+    amount: 500,
+    date: '2026-08-15',
+    description: 'Testivuokra',
+  })
   const after = report.rentalIncomeReport(2026).total
   assert.equal(after, before + 500)
 })
@@ -47,6 +54,10 @@ test('toCSV escapes commas and quotes', () => {
 
 test('buildCsvExports produces expected files with headers', () => {
   const files = report.buildCsvExports()
-  assert.ok(files['transactions.csv']!.startsWith('id,property_id,type,category,amount'))
+  assert.ok(
+    files['transactions.csv']!.startsWith(
+      'id,property_id,type,category,amount',
+    ),
+  )
   assert.ok(Object.keys(files).includes('properties.csv'))
 })

@@ -10,5 +10,5 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   dts: false,
-  external: ['node:sqlite', 'sqlite']
+  external: ['node:sqlite', 'sqlite'],
 })

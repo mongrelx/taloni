@@ -1,20 +1,41 @@
 #!/usr/bin/env node
 
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { Command } from 'commander'
-import React from 'react'
 import { render } from 'ink'
-import { writeFileSync, mkdirSync, copyFileSync, existsSync } from 'fs'
-import { join } from 'path'
-import { initDb, getTasks, addTask, getProperties, getTransactions, addTransaction, getDbPath } from './db.js'
+import React from 'react'
+import {
+  addTask,
+  addTransaction,
+  getDbPath,
+  getProperties,
+  getTasks,
+  initDb,
+} from './db.js'
+import {
+  annualReport,
+  buildCsvExports,
+  formatAnnualReport,
+  formatRentalReport,
+  rentalIncomeReport,
+} from './report.js'
 import { Dashboard } from './ui/Dashboard.js'
-import { annualReport, rentalIncomeReport, formatAnnualReport, formatRentalReport, buildCsvExports } from './report.js'
-import { validateTaskInput, validateTransactionInput, parseAmount } from './validate.js'
+import {
+  parseAmount,
+  validateTaskInput,
+  validateTransactionInput,
+} from './validate.js'
 
 // 1. Node Version Guard
 const [major, minor] = process.versions.node.split('.').map(Number)
-if (major === undefined || major < 22 || (major === 22 && minor !== undefined && minor < 5)) {
+if (
+  major === undefined ||
+  major < 22 ||
+  (major === 22 && minor !== undefined && minor < 5)
+) {
   process.stderr.write(
-    `Error: taloni requires Node.js >= 22.5.0 for native SQLite support (current: ${process.version})\n`
+    `Error: taloni requires Node.js >= 22.5.0 for native SQLite support (current: ${process.version})\n`,
   )
   process.exit(1)
 }
@@ -23,7 +44,9 @@ if (major === undefined || major < 22 || (major === 22 && minor !== undefined &&
 try {
   initDb()
 } catch (e) {
-  process.stderr.write(`Failed to initialize SQLite database: ${(e as Error).message}\n`)
+  process.stderr.write(
+    `Failed to initialize SQLite database: ${(e as Error).message}\n`,
+  )
   process.exit(1)
 }
 
@@ -32,23 +55,24 @@ const program = new Command()
 
 program
   .name('taloni')
-  .description('Beautiful localized terminal dashboard for managing Finnish log houses & property registries.')
+  .description(
+    'Beautiful localized terminal dashboard for managing Finnish log houses & property registries.',
+  )
   .version('1.1.0')
 
 // Default action: start interactive dashboard TUI
-program
-  .action(() => {
-    // Clear screen first for a clean TUI experience
-    process.stdout.write('\x1Bc')
-    
-    // Start Ink render
-    const app = render(React.createElement(Dashboard))
-    
-    // Wait for Ink app to complete
-    app.waitUntilExit().then(() => {
-      process.stdout.write('\nHei hei! Thank you for using Taloni!\n')
-    })
+program.action(() => {
+  // Clear screen first for a clean TUI experience
+  process.stdout.write('\x1Bc')
+
+  // Start Ink render
+  const app = render(React.createElement(Dashboard))
+
+  // Wait for Ink app to complete
+  app.waitUntilExit().then(() => {
+    process.stdout.write('\nHei hei! Thank you for using Taloni!\n')
   })
+})
 
 // Command: list properties (Kiinteistöluettelo)
 program
@@ -57,8 +81,11 @@ program
   .action(() => {
     const props = getProperties()
     console.log('\n--- 🏡 KIINTEISTÖREKISTERI (Property Registry) ---')
-    props.forEach(p => {
-      const waterLabel = p.water_source === 'well' ? 'Oma kaivo (Well)' : 'Kunnan vesiliittymä (Mains)'
+    props.forEach((p) => {
+      const waterLabel =
+        p.water_source === 'well'
+          ? 'Oma kaivo (Well)'
+          : 'Kunnan vesiliittymä (Mains)'
       console.log(`[ID: ${p.id}] ${p.name}`)
       console.log(`  └─ Tunnus:  ${p.kiinteistotunnus}`)
       console.log(`  └─ Vesi:    ${waterLabel}`)
@@ -72,34 +99,57 @@ program
   .command('add-task')
   .description('Add a task for a specific property')
   .argument('<title>', 'Task title')
-  .option('-p, --priority <priority>', 'Priority: low, medium, or high', 'medium')
-  .option('-c, --category <category>', 'Category (e.g. Garden, Tools, Maintenance)', 'General')
+  .option(
+    '-p, --priority <priority>',
+    'Priority: low, medium, or high',
+    'medium',
+  )
+  .option(
+    '-c, --category <category>',
+    'Category (e.g. Garden, Tools, Maintenance)',
+    'General',
+  )
   .option('-s, --cost <cost>', 'Estimated cost in EUR', '0')
-  .option('-i, --property-id <id>', 'Target Property ID (Default: 1 - Metsäpirtti)', '1')
+  .option(
+    '-i, --property-id <id>',
+    'Target Property ID (Default: 1 - Metsäpirtti)',
+    '1',
+  )
   .action((title, options) => {
-    const errors = validateTaskInput({ title, priority: options.priority, cost: options.cost })
+    const errors = validateTaskInput({
+      title,
+      priority: options.priority,
+      cost: options.cost,
+    })
     if (errors.length > 0) {
-      process.stderr.write(`Virheellinen syöte:\n${errors.map(e => `  - ${e}`).join('\n')}\n`)
+      process.stderr.write(
+        `Virheellinen syöte:\n${errors.map((e) => `  - ${e}`).join('\n')}\n`,
+      )
       process.exit(1)
     }
     const costNum = parseAmount(options.cost) ?? 0
-    const propId = parseInt(options.propertyId) || 1
+    const propId = parseInt(options.propertyId, 10) || 1
 
     addTask({
       property_id: propId,
       title,
       status: 'pending',
       priority: options.priority as 'low' | 'medium' | 'high',
-      due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 14 days out
+      due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0], // 14 days out
       category: options.category,
       cost: costNum,
       recurrence: 'none',
-      next_due: null
+      next_due: null,
     })
-    
+
     const props = getProperties()
-    const propName = props.find(p => p.id === propId)?.name || `Property #${propId}`
-    console.log(`Successfully added task to "${propName}":\n"${title}" [${options.priority.toUpperCase()}] €${costNum}`)
+    const propName =
+      props.find((p) => p.id === propId)?.name || `Property #${propId}`
+    console.log(
+      `Successfully added task to "${propName}":\n"${title}" [${options.priority.toUpperCase()}] €${costNum}`,
+    )
   })
 
 // Command: add-tx (add income or expense)
@@ -108,17 +158,30 @@ program
   .description('Add a financial transaction (income or expense)')
   .argument('<amount>', 'Amount in EUR (positive number)')
   .option('-t, --type <type>', 'Transaction type: income or expense', 'expense')
-  .option('-c, --category <category>', 'Category (e.g. Rent, Wood, Electric, Tools)', 'General')
+  .option(
+    '-c, --category <category>',
+    'Category (e.g. Rent, Wood, Electric, Tools)',
+    'General',
+  )
   .option('-d, --desc <description>', 'Description', 'Transaction')
-  .option('-i, --property-id <id>', 'Target Property ID (Default: 1 - Metsäpirtti)', '1')
+  .option(
+    '-i, --property-id <id>',
+    'Target Property ID (Default: 1 - Metsäpirtti)',
+    '1',
+  )
   .action((amountStr, options) => {
-    const errors = validateTransactionInput({ amount: amountStr, type: options.type })
+    const errors = validateTransactionInput({
+      amount: amountStr,
+      type: options.type,
+    })
     if (errors.length > 0) {
-      process.stderr.write(`Virheellinen syöte:\n${errors.map(e => `  - ${e}`).join('\n')}\n`)
+      process.stderr.write(
+        `Virheellinen syöte:\n${errors.map((e) => `  - ${e}`).join('\n')}\n`,
+      )
       process.exit(1)
     }
     const amt = parseAmount(amountStr) ?? 0
-    const propId = parseInt(options.propertyId) || 1
+    const propId = parseInt(options.propertyId, 10) || 1
 
     addTransaction({
       property_id: propId,
@@ -126,13 +189,16 @@ program
       category: options.category,
       amount: amt,
       date: new Date().toISOString().split('T')[0],
-      description: options.desc
+      description: options.desc,
     })
-    
+
     const props = getProperties()
-    const propName = props.find(p => p.id === propId)?.name || `Property #${propId}`
+    const propName =
+      props.find((p) => p.id === propId)?.name || `Property #${propId}`
     const symbol = options.type === 'income' ? '+' : '-'
-    console.log(`Successfully recorded financial entry for "${propName}": ${options.type.toUpperCase()} ${symbol}${amt} € (${options.desc})`)
+    console.log(
+      `Successfully recorded financial entry for "${propName}": ${options.type.toUpperCase()} ${symbol}${amt} € (${options.desc})`,
+    )
   })
 
 // Command: list tasks
@@ -141,20 +207,27 @@ program
   .description('Print all tasks to the terminal')
   .option('-i, --property-id <id>', 'Filter by Property ID')
   .action((options) => {
-    const propId = options.propertyId ? parseInt(options.propertyId) : undefined
+    const propId = options.propertyId
+      ? parseInt(options.propertyId, 10)
+      : undefined
     const tasks = getTasks(propId)
     const props = getProperties()
-    
+
     if (tasks.length === 0) {
       console.log('No tasks found.')
       return
     }
-    
+
     console.log('\n--- 📋 TEHTÄVÄLISTA (Tasks List) ---')
-    tasks.forEach(t => {
-      const statusIcon = t.status === 'completed' ? '✓' : t.status === 'in_progress' ? '➔' : '☐'
-      const propName = props.find(p => p.id === t.property_id)?.name || `Prop #${t.property_id}`
-      console.log(`${statusIcon} [${t.priority.toUpperCase()}] ${t.title} [${propName}] (${t.category}) - ${t.cost} €`)
+    tasks.forEach((t) => {
+      const statusIcon =
+        t.status === 'completed' ? '✓' : t.status === 'in_progress' ? '➔' : '☐'
+      const propName =
+        props.find((p) => p.id === t.property_id)?.name ||
+        `Prop #${t.property_id}`
+      console.log(
+        `${statusIcon} [${t.priority.toUpperCase()}] ${t.title} [${propName}] (${t.category}) - ${t.cost} €`,
+      )
     })
     console.log('')
   })
@@ -166,7 +239,7 @@ program
   .argument('[year]', 'Report year (default: current year)')
   .option('--rental-only', 'Print only the rental-income report')
   .action((yearArg, options) => {
-    const year = yearArg ? parseInt(yearArg) : new Date().getFullYear()
+    const year = yearArg ? parseInt(yearArg, 10) : new Date().getFullYear()
     if (Number.isNaN(year)) {
       process.stderr.write(`Virheellinen vuosi: ${yearArg}\n`)
       process.exit(1)
@@ -190,8 +263,12 @@ program
     for (const [name, content] of Object.entries(files)) {
       writeFileSync(join(dir, name), content, 'utf8')
     }
-    console.log(`Vienti valmis: ${Object.keys(files).length} CSV-tiedostoa hakemistoon ${dir}`)
-    Object.keys(files).forEach(f => console.log(`  - ${f}`))
+    console.log(
+      `Vienti valmis: ${Object.keys(files).length} CSV-tiedostoa hakemistoon ${dir}`,
+    )
+    for (const f of Object.keys(files)) {
+      console.log(`  - ${f}`)
+    }
   })
 
 // Command: backup — varmuuskopioi SQLite-tietokannan aikaleimatulla nimellä

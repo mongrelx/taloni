@@ -1,8 +1,15 @@
-import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { test } from 'node:test'
 import {
-  isIsoDate, isIsoMonth, isKiinteistotunnus, isNonNegativeNumber,
-  parseAmount, isPriority, isTxType, validateTaskInput, validateTransactionInput
+  isIsoDate,
+  isIsoMonth,
+  isKiinteistotunnus,
+  isNonNegativeNumber,
+  isPriority,
+  isTxType,
+  parseAmount,
+  validateTaskInput,
+  validateTransactionInput,
 } from '../src/validate.ts'
 
 test('isIsoDate accepts valid dates and rejects invalid ones', () => {
@@ -44,13 +51,19 @@ test('enum guards', () => {
 })
 
 test('validateTaskInput collects errors', () => {
-  assert.deepEqual(validateTaskInput({ title: 'Nuohous', priority: 'high', cost: '65' }), [])
+  assert.deepEqual(
+    validateTaskInput({ title: 'Nuohous', priority: 'high', cost: '65' }),
+    [],
+  )
   const errs = validateTaskInput({ title: '', priority: 'urgent', cost: '-5' })
   assert.equal(errs.length, 3)
 })
 
 test('validateTransactionInput collects errors', () => {
-  assert.deepEqual(validateTransactionInput({ amount: '650', type: 'income' }), [])
+  assert.deepEqual(
+    validateTransactionInput({ amount: '650', type: 'income' }),
+    [],
+  )
   const errs = validateTransactionInput({ amount: 'x', type: 'gift' })
   assert.equal(errs.length, 2)
 })

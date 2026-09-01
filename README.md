@@ -35,16 +35,24 @@ Koko käyttöliittymä on toteutettu **puhtaasti suomeksi** ja se toimii suoraan
 Asenna riippuvuudet projektihakemistossa:
 
 ```bash
-cd /Users/moskari/Projects/taloni
+git clone https://github.com/mongrelx/taloni.git
+cd taloni
 npm install
 ```
 
-### Kääntäminen (Build)
+### Kääntäminen (Build) & Globaali linkitys
 
 Käännä TypeScript-tiedostot ja luo ajettava moduuli:
 
 ```bash
 npm run build
+```
+
+Voit linkittää sovelluksen järjestelmänlaajuiseksi `taloni`-komennoksi:
+
+```bash
+npm link
+# Tämän jälkeen voit ajaa 'taloni' missä tahansa hakemistossa!
 ```
 
 ---
@@ -184,8 +192,27 @@ node dist/cli.js export ~/varmuuskopiot/csv
 node dist/cli.js backup
 ```
 
-### 3. Testit
+### 3. Laadunvalvonta & Testaus
 
 ```bash
-npm test   # 19 testiä: validointi, db-kerros, migraatiot ja raportit
+# Aja kaikki testit (41 testiä: CLI, tietokanta, migraatiot, raportointi, validointi)
+npm test
+
+# Tarkista koodin tyyli ja säännöt Biome-linterillä
+npm run lint
+
+# Korjaa muotoilu- ja lint-virheet automaattisesti
+npm run lint:fix
 ```
+
+---
+
+## Projektin rakenne
+
+- `src/cli.ts` — Komentorivikäyttöliittymä (Commander), TUI-käynnistys ja alikomennot
+- `src/db.ts` — SQLite-tietokantaskeema, migraatiot, siemenaineisto ja kaikki CRUD-toiminnot
+- `src/report.ts` — Vuosikooste, vuokratuloraportti ja CSV-vientitoiminnot
+- `src/validate.ts` — Syötteiden validointi (puhtaat funktiot)
+- `src/ui/Dashboard.tsx` — Ink-pohjainen interaktiivinen TUI-komponentti (9 välilehteä)
+- `test/` — Yksikkö- ja integraatiotestit (`node:test` + `node:assert/strict`)
+- `.github/workflows/` — CI- ja Release-automaatiot (GitHub Actions)

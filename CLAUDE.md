@@ -16,7 +16,9 @@ All user-facing text is in Finnish.
 - `npm run dev` — start TUI in dev mode
 - `npm run build` — bundle to dist/
 - `npm start` — run compiled CLI
-- `npm test` — run all tests (19 tests: validation, db layer, migrations, reports)
+- `npm test` — run all tests (validation, db layer, migrations, reports)
+- `npm run lint` — check code style and lint rules with Biome
+- `npm run lint:fix` — auto-fix lint and formatting issues with Biome
 
 ## Architecture
 
