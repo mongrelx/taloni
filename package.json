@@ -1,0 +1,29 @@
+{
+  "name": "taloni",
+  "version": "1.0.0",
+  "description": "Terminal dashboard for managing real estate: tasks, renovations, purchases, insurance, utilities, garden, and tools.",
+  "type": "module",
+  "main": "./dist/cli.js",
+  "bin": {
+    "taloni": "dist/cli.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsup",
+    "start": "node dist/cli.js",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "ink": "^7.0.0",
+    "react": "^19.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "@types/react": "^19.2.14",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

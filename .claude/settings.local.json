@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(npx tsx *)",
+      "Bash(sort -t'\\(' -k2 -n)",
+      "Bash(awk -F'\\(' '{print $2}')",
+      "Bash(awk '$1>=1591 && $1<=1730 || $1>=2630 {print}')",
+      "Bash(npm test *)",
+      "Bash(export HOME=/private/tmp/claude-501/-Users-moskari-Projects-taloni/102589fa-e259-4234-9912-13db9b263a2f/scratchpad/p5cli)",
+      "Bash(echo \"=== report 2026 ===\")",
+      "Bash(echo \"exit=$?\")",
+      "Read(//Users/moskari/exp/**)",
+      "Bash(echo \"=== bad amount 'xyz' ===\")",
+      "Bash(echo \"=== bad type 'gift' ===\")",
+      "Bash(echo \"=== valid add-tx ===\")"
+    ]
+  }
+}
