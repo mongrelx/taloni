@@ -38,7 +38,7 @@
     "format": "biome format --write ."
   },
   "dependencies": {
-    "chalk": "^5.4.1",
+    "chalk": "^6.0.0",
     "commander": "^13.1.0",
     "ink": "^7.0.0",
     "react": "^19.2.5"
