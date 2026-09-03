@@ -112,7 +112,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [ ] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking
 - [ ] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking
 - [ ] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration
-- [ ] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison
+- [~] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison (osittain: `taloni portfolio [vuosi]` toteutettu — vertailu, käyttöaste, ROI; arvonseuranta ajan yli vielä auki, tarvitsee tietolähdepäätöksen)
 - [ ] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (migration tools)
 - [ ] [#30](https://github.com/mongrelx/taloni/issues/30) — Offline-first & sync support
 - [ ] [#31](https://github.com/mongrelx/taloni/issues/31) — Multi-language support (Swedish, English)
@@ -123,3 +123,4 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 ### Ylläpito (valmiit)
 
 - [x] [#41](https://github.com/mongrelx/taloni/issues/41) — Refactor: split `db.ts` into `src/db/` domain modules (types, schema, migrations, seed, repositories/*)
+- [x] Korjattu Ink `<Text>`-komponentin virheelliset layout-propsit (`width`/`align`/`marginTop`/`marginY`) siirtämällä ne `<Box>`-kääreeseen — CI:n `tsc --noEmit`-vaihe vihreä ensimmäistä kertaa (ei liittynyt yksittäiseen issueen, löytyi #41:n sivutuotteena)
