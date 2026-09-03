@@ -166,3 +166,131 @@ test('buildCsvExports produces expected files with headers', () => {
   )
   assert.ok(Object.keys(files).includes('properties.csv'))
 })
+
+test('fromCSV round-trips toCSV output, including quoted fields', () => {
+  const csv = report.toCSV([
+    { a: 'x,y', b: 'he said "hi"', c: 3 },
+    { a: 'plain', b: 'multi\nline', c: -1 },
+  ])
+  const rows = report.fromCSV(csv)
+  assert.deepEqual(rows, [
+    { a: 'x,y', b: 'he said "hi"', c: '3' },
+    { a: 'plain', b: 'multi\nline', c: '-1' },
+  ])
+})
+
+test('fromCSV returns no rows for header-only CSV', () => {
+  assert.deepEqual(report.fromCSV('a,b,c\n'), [])
+})
+
+test('importPropertiesCsv adds valid rows and reports errors for invalid ones', () => {
+  const before = db.getProperties().length
+  const csv = report.toCSV([
+    {
+      name: 'Tuontitesti',
+      kiinteistotunnus: '111-111-1-11',
+      water_source: 'well',
+      build_year: '1990',
+      location: 'Testilä',
+      sauna_type: 'wood',
+      sauna_info: '',
+      property_tax: '50',
+      road_fee: '0',
+      electricity_fuse: '',
+      water_connection: '',
+      waste_provider: '',
+      waste_bin: '',
+      waste_interval: '',
+      biowaste: 'collection',
+      compost_registered: '0',
+      compost_reg_date: '',
+    },
+    {
+      name: 'Virheellinen',
+      kiinteistotunnus: 'ei-kelvollinen',
+      water_source: 'well',
+      build_year: '1990',
+      location: '',
+      sauna_type: 'none',
+      sauna_info: '',
+      property_tax: '0',
+      road_fee: '0',
+      electricity_fuse: '',
+      water_connection: '',
+      waste_provider: '',
+      waste_bin: '',
+      waste_interval: '',
+      biowaste: 'collection',
+      compost_registered: '0',
+      compost_reg_date: '',
+    },
+  ])
+  const result = report.importPropertiesCsv(csv)
+  assert.equal(result.imported, 1)
+  assert.equal(result.errors.length, 1)
+  assert.ok(result.errors[0]!.includes('kiinteistötunnus'))
+  assert.equal(db.getProperties().length, before + 1)
+  assert.ok(db.getProperties().some((p) => p.name === 'Tuontitesti'))
+})
+
+test('importTransactionsCsv validates property_id, type, amount and date', () => {
+  const pid = db.getProperties().find((p) => p.name === 'Pappila')!.id
+  const beforeCount = db.getTransactions().length
+  const csv = report.toCSV([
+    {
+      property_id: String(pid),
+      type: 'expense',
+      category: 'Testi',
+      amount: '42.5',
+      date: '2026-02-10',
+      description: 'Tuotu rivi',
+    },
+    {
+      property_id: '999999',
+      type: 'expense',
+      category: 'Testi',
+      amount: '10',
+      date: '2026-02-10',
+      description: 'Tuntematon kohde',
+    },
+    {
+      property_id: String(pid),
+      type: 'invalid',
+      category: 'Testi',
+      amount: '10',
+      date: '2026-02-10',
+      description: 'Virheellinen tyyppi',
+    },
+  ])
+  const result = report.importTransactionsCsv(csv)
+  assert.equal(result.imported, 1)
+  assert.equal(result.errors.length, 2)
+  assert.equal(db.getTransactions().length, beforeCount + 1)
+})
+
+test('buildJsonExport includes all tables with seeded data', () => {
+  const data = report.buildJsonExport() as Record<string, unknown>
+  assert.ok(typeof data.exportedAt === 'string')
+  assert.ok(Array.isArray(data.properties))
+  assert.ok((data.properties as unknown[]).length > 0)
+  for (const key of [
+    'tasks',
+    'renovations',
+    'transactions',
+    'utilities',
+    'tools',
+    'insurance',
+    'heatingSystems',
+    'fireplaces',
+    'wastewaterSystems',
+    'waterTests',
+    'firewood',
+    'bookings',
+    'contacts',
+    'documents',
+    'meterReadings',
+    'buildingMaterials',
+  ]) {
+    assert.ok(Array.isArray(data[key]), `${key} should be an array`)
+  }
+})

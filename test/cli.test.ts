@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, it } from 'node:test'
@@ -137,6 +143,49 @@ describe('CLI command integration tests', () => {
     assert.ok(existsSync(join(exportDir, 'transactions.csv')))
     const csvContent = readFileSync(join(exportDir, 'properties.csv'), 'utf8')
     assert.ok(csvContent.includes('kiinteistotunnus'))
+  })
+
+  it('export-json command writes a full JSON export', () => {
+    const jsonFile = join(testHome, 'full-export.json')
+    const res = runCli(['export-json', jsonFile])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('JSON-vienti valmis'))
+    const data = JSON.parse(readFileSync(jsonFile, 'utf8'))
+    assert.ok(Array.isArray(data.properties))
+    assert.ok(data.properties.length > 0)
+    assert.ok(Array.isArray(data.transactions))
+  })
+
+  it('import command adds a property from CSV', () => {
+    const csvFile = join(testHome, 'import-properties.csv')
+    writeFileSync(
+      csvFile,
+      'name,kiinteistotunnus,water_source,build_year,location\n' +
+        'CLI-tuonti,222-222-2-22,well,2001,Testikylä\n',
+    )
+    const res = runCli(['import', 'properties', csvFile])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('Tuotu 1 riviä'))
+    const propsRes = runCli(['properties'])
+    assert.ok(propsRes.stdout.includes('CLI-tuonti'))
+  })
+
+  it('import command rejects an unknown type', () => {
+    const csvFile = join(testHome, 'import-bad.csv')
+    writeFileSync(csvFile, 'a,b\n1,2\n')
+    const res = runCli(['import', 'bogus', csvFile])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Tuntematon tyyppi'))
+  })
+
+  it('import command reports a missing file', () => {
+    const res = runCli([
+      'import',
+      'properties',
+      join(testHome, 'does-not-exist.csv'),
+    ])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Tiedostoa ei löytynyt'))
   })
 
   it('backup command creates SQLite backup file', () => {

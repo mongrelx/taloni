@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs'
 import { join } from 'node:path'
 import { Command } from 'commander'
 import { render } from 'ink'
@@ -16,9 +22,13 @@ import {
 import {
   annualReport,
   buildCsvExports,
+  buildJsonExport,
   formatAnnualReport,
   formatPortfolioReport,
   formatRentalReport,
+  type ImportResult,
+  importPropertiesCsv,
+  importTransactionsCsv,
   portfolioReport,
   rentalIncomeReport,
 } from './report.js'
@@ -285,6 +295,49 @@ program
     for (const f of Object.keys(files)) {
       console.log(`  - ${f}`)
     }
+  })
+
+// Command: export-json — koko tietokannan vienti yhteen JSON-tiedostoon
+program
+  .command('export-json')
+  .description('Export the full database as a single JSON file')
+  .argument('[file]', 'Target file (default: ./taloni-export.json)')
+  .action((fileArg) => {
+    const file = fileArg || join(process.cwd(), 'taloni-export.json')
+    writeFileSync(file, JSON.stringify(buildJsonExport(), null, 2), 'utf8')
+    console.log(`JSON-vienti valmis: ${file}`)
+  })
+
+// Command: import — tuo kiinteistöjä tai taloustapahtumia CSV-tiedostosta
+program
+  .command('import')
+  .description(
+    'Import properties or transactions from a CSV file (columns match `export`)',
+  )
+  .argument('<type>', 'Data type: properties|transactions')
+  .argument('<file>', 'Path to the CSV file')
+  .action((type, file) => {
+    if (type !== 'properties' && type !== 'transactions') {
+      process.stderr.write(
+        `Tuntematon tyyppi: ${type} (odotettu: properties|transactions)\n`,
+      )
+      process.exit(1)
+    }
+    if (!existsSync(file)) {
+      process.stderr.write(`Tiedostoa ei löytynyt: ${file}\n`)
+      process.exit(1)
+    }
+    const csvText = readFileSync(file, 'utf8')
+    const result: ImportResult =
+      type === 'properties'
+        ? importPropertiesCsv(csvText)
+        : importTransactionsCsv(csvText)
+    console.log(`Tuotu ${result.imported} riviä.`)
+    if (result.errors.length > 0) {
+      console.log(`${result.errors.length} riviä hylättiin:`)
+      for (const e of result.errors) console.log(`  - ${e}`)
+    }
+    if (result.imported === 0 && result.errors.length > 0) process.exit(1)
   })
 
 // Command: backup — varmuuskopioi SQLite-tietokannan aikaleimatulla nimellä

@@ -1,13 +1,28 @@
-// Raportointi & vienti — vuosikooste, vuokratuloraportti (verottajalle) ja CSV-vienti.
+// Raportointi & vienti — vuosikooste, vuokratuloraportti (verottajalle), CSV/JSON-vienti ja -tuonti.
 import {
+  addProperty,
+  addTransaction,
   getBookings,
   getBuildingMaterials,
+  getContacts,
+  getDocuments,
+  getFireplaces,
+  getFirewood,
+  getHeatingSystems,
+  getInsurance,
+  getMeterReadings,
   getProperties,
+  getRenovations,
   getTasks,
+  getTools,
   getTransactions,
   getUtilities,
+  getWastewaterSystems,
+  getWaterTests,
+  type Property,
   type Transaction,
 } from './db/index.js'
+import { isIsoDate, isKiinteistotunnus, parseAmount } from './validate.js'
 
 export interface PropertyYearSummary {
   propertyId: number
@@ -274,6 +289,221 @@ export function buildCsvExports(): Record<string, string> {
     'building_materials.csv': toCSV(
       getBuildingMaterials() as unknown as Record<string, unknown>[],
     ),
+  }
+}
+
+// Jäsentää CSV-tekstin (toCSV:n käänteisoperaatio) rivien objektilistaksi otsikkorivin mukaan.
+// Tukee lainausmerkeissä olevia kenttiä, joissa on pilkkuja, rivinvaihtoja tai "" -paritettuja lainausmerkkejä.
+export function fromCSV(text: string): Record<string, string>[] {
+  const rows: string[][] = []
+  let field = ''
+  let row: string[] = []
+  let inQuotes = false
+  let i = 0
+  while (i < text.length) {
+    const c = text[i]
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          field += '"'
+          i += 2
+          continue
+        }
+        inQuotes = false
+        i++
+        continue
+      }
+      field += c
+      i++
+      continue
+    }
+    if (c === '"') {
+      inQuotes = true
+      i++
+      continue
+    }
+    if (c === ',') {
+      row.push(field)
+      field = ''
+      i++
+      continue
+    }
+    if (c === '\r') {
+      i++
+      continue
+    }
+    if (c === '\n') {
+      row.push(field)
+      rows.push(row)
+      field = ''
+      row = []
+      i++
+      continue
+    }
+    field += c
+    i++
+  }
+  if (field.length > 0 || row.length > 0) {
+    row.push(field)
+    rows.push(row)
+  }
+  if (rows.length === 0) return []
+  const header = rows[0]!
+  return rows.slice(1).map((r) => {
+    const obj: Record<string, string> = {}
+    header.forEach((h, idx) => {
+      obj[h] = r[idx] ?? ''
+    })
+    return obj
+  })
+}
+
+export interface ImportResult {
+  imported: number
+  errors: string[] // "Rivi N: syy" -muotoiset virheet hylätyille riveille
+}
+
+// Tuo kiinteistöjä CSV:stä (sarakkeet: ks. properties.csv-vientimuoto, id-sarake ohitetaan).
+export function importPropertiesCsv(csvText: string): ImportResult {
+  const rows = fromCSV(csvText)
+  const errors: string[] = []
+  let imported = 0
+  const SAUNA_TYPES = new Set(['none', 'wood', 'electric'])
+  const BIOWASTE_TYPES = new Set([
+    'collection',
+    'home_compost',
+    'shared',
+    'none',
+  ])
+
+  rows.forEach((row, idx) => {
+    const lineNo = idx + 2
+    const name = (row.name ?? '').trim()
+    const kiinteistotunnus = (row.kiinteistotunnus ?? '').trim()
+    const waterSource = row.water_source
+    const buildYear = Number(row.build_year)
+
+    if (!name) {
+      errors.push(`Rivi ${lineNo}: nimi puuttuu`)
+      return
+    }
+    if (!isKiinteistotunnus(kiinteistotunnus)) {
+      errors.push(
+        `Rivi ${lineNo}: virheellinen kiinteistötunnus (${row.kiinteistotunnus})`,
+      )
+      return
+    }
+    if (waterSource !== 'well' && waterSource !== 'mains') {
+      errors.push(
+        `Rivi ${lineNo}: water_source tulee olla well|mains (oli: ${waterSource})`,
+      )
+      return
+    }
+    if (!Number.isFinite(buildYear) || buildYear <= 0) {
+      errors.push(`Rivi ${lineNo}: virheellinen build_year (${row.build_year})`)
+      return
+    }
+
+    const saunaType = SAUNA_TYPES.has(row.sauna_type ?? '')
+      ? (row.sauna_type as Property['sauna_type'])
+      : 'none'
+    const biowaste = BIOWASTE_TYPES.has(row.biowaste ?? '')
+      ? (row.biowaste as Property['biowaste'])
+      : 'collection'
+
+    addProperty({
+      name,
+      kiinteistotunnus,
+      water_source: waterSource,
+      build_year: buildYear,
+      location: row.location ?? '',
+      sauna_type: saunaType,
+      sauna_info: row.sauna_info ?? '',
+      property_tax: parseAmount(row.property_tax ?? '') ?? 0,
+      road_fee: parseAmount(row.road_fee ?? '') ?? 0,
+      electricity_fuse: row.electricity_fuse ?? '',
+      water_connection: row.water_connection ?? '',
+      waste_provider: row.waste_provider ?? '',
+      waste_bin: row.waste_bin ?? '',
+      waste_interval: row.waste_interval ?? '',
+      biowaste,
+      compost_registered: row.compost_registered === '1' ? 1 : 0,
+      compost_reg_date: row.compost_reg_date ?? '',
+    })
+    imported++
+  })
+
+  return { imported, errors }
+}
+
+// Tuo taloustapahtumia CSV:stä (sarakkeet: property_id, type, category, amount, date, description).
+export function importTransactionsCsv(csvText: string): ImportResult {
+  const rows = fromCSV(csvText)
+  const validPropertyIds = new Set(getProperties().map((p) => p.id))
+  const errors: string[] = []
+  let imported = 0
+
+  rows.forEach((row, idx) => {
+    const lineNo = idx + 2
+    const propertyId = Number(row.property_id)
+    const amount = parseAmount(row.amount ?? '')
+    const type = row.type
+    const date = row.date ?? ''
+
+    if (!Number.isFinite(propertyId) || !validPropertyIds.has(propertyId)) {
+      errors.push(`Rivi ${lineNo}: tuntematon property_id (${row.property_id})`)
+      return
+    }
+    if (type !== 'income' && type !== 'expense') {
+      errors.push(
+        `Rivi ${lineNo}: type tulee olla income|expense (oli: ${type})`,
+      )
+      return
+    }
+    if (amount === null) {
+      errors.push(`Rivi ${lineNo}: virheellinen amount (${row.amount})`)
+      return
+    }
+    if (!isIsoDate(date)) {
+      errors.push(`Rivi ${lineNo}: virheellinen date (${row.date})`)
+      return
+    }
+
+    addTransaction({
+      property_id: propertyId,
+      type,
+      category: row.category ?? '',
+      amount,
+      date,
+      description: row.description ?? '',
+    })
+    imported++
+  })
+
+  return { imported, errors }
+}
+
+// Koko tietokannan vienti yhdeksi JSON-oliokoosteeksi (kaikki taulut).
+export function buildJsonExport(): Record<string, unknown> {
+  return {
+    exportedAt: new Date().toISOString(),
+    properties: getProperties(),
+    tasks: getTasks(),
+    renovations: getRenovations(),
+    transactions: getTransactions(),
+    utilities: getUtilities(),
+    tools: getTools(),
+    insurance: getInsurance(),
+    heatingSystems: getHeatingSystems(),
+    fireplaces: getFireplaces(),
+    wastewaterSystems: getWastewaterSystems(),
+    waterTests: getWaterTests(),
+    firewood: getFirewood(),
+    bookings: getBookings(),
+    contacts: getContacts(),
+    documents: getDocuments(),
+    meterReadings: getMeterReadings(),
+    buildingMaterials: getBuildingMaterials(),
   }
 }
 
