@@ -109,7 +109,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [ ] [#22](https://github.com/mongrelx/taloni/issues/22) — Utility company integrations (water & electricity)
 - [ ] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (companion to TUI)
 - [ ] [#24](https://github.com/mongrelx/taloni/issues/24) — Notification system (reminders & alerts)
-- [ ] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking
+- [~] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking (osittain: kulujen linkitys remonttiin + `taloni renovations` budjettivertailu toteutettu; materiaali/työkustannusarviot ja historiadata vielä auki)
 - [ ] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking
 - [ ] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration
 - [~] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison (osittain: `taloni portfolio [vuosi]` toteutettu — vertailu, käyttöaste, ROI; arvonseuranta ajan yli vielä auki, tarvitsee tietolähdepäätöksen)
