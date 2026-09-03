@@ -25,6 +25,7 @@ import {
   buildCsvExports,
   buildJsonExport,
   energyEfficiencyReport,
+  formatAlerts,
   formatAnnualReport,
   formatEnergyReport,
   formatPortfolioReport,
@@ -36,6 +37,7 @@ import {
   portfolioReport,
   renovationBudgetReport,
   rentalIncomeReport,
+  upcomingObligations,
 } from './report.js'
 import { Dashboard } from './ui/Dashboard.js'
 import {
@@ -320,6 +322,24 @@ program
       process.exit(1)
     }
     console.log(formatEnergyReport(energyEfficiencyReport(year), year))
+  })
+
+// Command: alerts — lähestyvät/myöhässä olevat velvoitteet (hälytysten "moottori")
+program
+  .command('alerts')
+  .description(
+    'Print upcoming/overdue obligations (tasks, insurance, sweeping, wastewater, heating inspections)',
+  )
+  .option('-d, --days <days>', 'Lead time in days', '30')
+  .action((options) => {
+    const leadDays = parseInt(options.days, 10)
+    if (Number.isNaN(leadDays)) {
+      process.stderr.write(`Virheellinen syöte:\n  - days: ${options.days}\n`)
+      process.exit(1)
+    }
+    const rows = upcomingObligations(leadDays)
+    console.log(formatAlerts(rows, leadDays))
+    if (rows.some((r) => r.daysUntil < 0)) process.exit(1)
   })
 
 // Command: export — kirjoittaa taulukot CSV-tiedostoiksi

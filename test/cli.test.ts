@@ -144,6 +144,18 @@ describe('CLI command integration tests', () => {
     assert.ok(res.stderr.includes('Virheellinen vuosi'))
   })
 
+  it('alerts command prints upcoming/overdue obligations', () => {
+    const res = runCli(['alerts', '-d', '99999'])
+    assert.ok(res.status === 0 || res.status === 1)
+    assert.ok(res.stdout.includes('HÄLYTYKSET (99999 pv aikaikkuna)'))
+  })
+
+  it('alerts rejects invalid days', () => {
+    const res = runCli(['alerts', '-d', 'not-a-number'])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Virheellinen syöte'))
+  })
+
   it('report command generates annual and rental reports', () => {
     const res = runCli(['report', '2026'])
     assert.equal(res.status, 0)

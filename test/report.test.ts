@@ -230,6 +230,51 @@ test('energyEfficiencyReport reports null kwhPerM2 when floor_area is unknown', 
   assert.equal(metsa.kwhPerM2, null)
 })
 
+test('upcomingObligations respects the lead-time window and flags overdue items', () => {
+  const p = db.getProperties()[0]!
+  const iso = (offsetDays: number) =>
+    new Date(Date.now() + offsetDays * 86_400_000).toISOString().slice(0, 10)
+
+  db.addTask({
+    property_id: p.id,
+    title: 'Lähestyvä hälytystesti',
+    status: 'pending',
+    priority: 'low',
+    due_date: iso(10),
+    category: 'Testi',
+    cost: 0,
+    recurrence: 'none',
+    next_due: null,
+  })
+  db.addTask({
+    property_id: p.id,
+    title: 'Myöhässä hälytystesti',
+    status: 'pending',
+    priority: 'low',
+    due_date: iso(-5),
+    category: 'Testi',
+    cost: 0,
+    recurrence: 'none',
+    next_due: null,
+  })
+
+  const withinWindow = report.upcomingObligations(15)
+  assert.ok(withinWindow.some((r) => r.label === 'Lähestyvä hälytystesti'))
+  const overdueRow = withinWindow.find(
+    (r) => r.label === 'Myöhässä hälytystesti',
+  )!
+  assert.ok(overdueRow.daysUntil < 0)
+
+  const narrowWindow = report.upcomingObligations(5)
+  assert.ok(!narrowWindow.some((r) => r.label === 'Lähestyvä hälytystesti'))
+  assert.ok(narrowWindow.some((r) => r.label === 'Myöhässä hälytystesti'))
+
+  // Järjestys: myöhässä/lähimpänä ensin
+  for (let i = 1; i < withinWindow.length; i++) {
+    assert.ok(withinWindow[i]!.daysUntil >= withinWindow[i - 1]!.daysUntil)
+  }
+})
+
 test('toCSV escapes commas and quotes', () => {
   const csv = report.toCSV([{ a: 'x,y', b: 'he said "hi"', c: 3 }])
   assert.equal(csv, 'a,b,c\n"x,y","he said ""hi""",3\n')

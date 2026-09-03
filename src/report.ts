@@ -336,6 +336,81 @@ export function energyEfficiencyReport(year: number): EnergyReportRow[] {
   })
 }
 
+export interface AlertRow {
+  date: string
+  daysUntil: number // negatiivinen = myöhässä
+  category: string
+  label: string
+  propertyName: string
+}
+
+// Kokoaa lähestyvät/myöhässä olevat velvoitteet (tehtävät, vakuutukset, nuohous, jätevesi,
+// lämmitystarkastus) yhteen listaan — sama aggregointi kuin Dashboard.tsx:n "Erääntyy 30 pv
+// sisällä" -widgetissä, mutta uudelleenkäytettävänä raporttina (issue #24: "Configurable lead
+// times", "Digest mode"). Sähköposti-/tekstiviestilähetys ei kuulu tähän — ei tietoa käytössä
+// olevasta palveluntarjoajasta/tunnuksista; tämä on hälytysten "moottori", jonka voi liittää
+// omaan cron+notify-send/mail-putkeen exit-koodin (1 = myöhässä olevia) kautta.
+export function upcomingObligations(leadDays: number): AlertRow[] {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const daysUntil = (d: string) =>
+    Math.round(
+      (new Date(`${d}T00:00:00`).getTime() - today.getTime()) / 86_400_000,
+    )
+  const props = getProperties()
+  const propName = (id: number) =>
+    props.find((p) => p.id === id)?.name ?? `#${id}`
+
+  const rows: AlertRow[] = []
+  const push = (
+    date: string | null,
+    category: string,
+    label: string,
+    propertyId: number,
+  ) => {
+    if (!date || !isIsoDate(date)) return
+    const days = daysUntil(date)
+    if (days <= leadDays) {
+      rows.push({
+        date,
+        daysUntil: days,
+        category,
+        label,
+        propertyName: propName(propertyId),
+      })
+    }
+  }
+
+  for (const t of getTasks()) {
+    if (t.status === 'completed') continue
+    push(
+      t.recurrence !== 'none' && t.next_due ? t.next_due : t.due_date,
+      t.category,
+      t.title,
+      t.property_id,
+    )
+  }
+  for (const ins of getInsurance()) {
+    push(
+      ins.renewal_date,
+      'Vakuutus',
+      `Vakuutus: ${ins.policy_name}`,
+      ins.property_id,
+    )
+  }
+  for (const f of getFireplaces()) {
+    push(f.next_sweep, 'Nuohous', `Nuohous: ${f.name}`, f.property_id)
+  }
+  for (const w of getWastewaterSystems()) {
+    push(w.next_emptied, 'Jätevesi', 'Jätevesisäiliön tyhjennys', w.property_id)
+  }
+  for (const h of getHeatingSystems()) {
+    push(h.next_inspection, 'Lämmitys', 'Lämmitystarkastus', h.property_id)
+  }
+
+  return rows.sort((a, b) => a.daysUntil - b.daysUntil)
+}
+
 // --- CSV ---
 
 function csvCell(v: unknown): string {
@@ -740,5 +815,27 @@ export function formatEnergyReport(
   lines.push(
     'Huom: parannusehdotukset ovat informatiivisia yleissuosituksia, eivät asiantuntija-arvio.',
   )
+  return lines.join('\n')
+}
+
+export function formatAlerts(rows: AlertRow[], leadDays: number): string {
+  const lines: string[] = []
+  lines.push(`=== HÄLYTYKSET (${leadDays} pv aikaikkuna) ===`)
+  lines.push('')
+  if (rows.length === 0) {
+    lines.push('Ei lähestyviä tai myöhässä olevia velvoitteita.')
+    return lines.join('\n')
+  }
+  for (const row of rows) {
+    const status =
+      row.daysUntil < 0
+        ? `⚠ MYÖHÄSSÄ ${Math.abs(row.daysUntil)} pv`
+        : row.daysUntil === 0
+          ? '⏰ TÄNÄÄN'
+          : `${row.daysUntil} pv`
+    lines.push(
+      `  [${row.category}] ${row.label} (${row.propertyName}) — ${row.date} — ${status}`,
+    )
+  }
   return lines.join('\n')
 }
