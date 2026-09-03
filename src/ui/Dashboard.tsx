@@ -3272,15 +3272,16 @@ export function Dashboard() {
       properties.find((p) => p.id === formPropId)?.name || 'Valitse nuolilla'
     const rowProp = (idx: number) => (
       <Box flexDirection="row" key={`f${idx}`}>
-        <Text
-          width={26}
-          color={activeField === idx ? C : '#FFFFFF'}
-          bold={activeField === idx}
-        >
-          {activeField === idx
-            ? '➔ Kohde (Kiinteistö):'
-            : '  Kohde (Kiinteistö):'}
-        </Text>
+        <Box width={26}>
+          <Text
+            color={activeField === idx ? C : '#FFFFFF'}
+            bold={activeField === idx}
+          >
+            {activeField === idx
+              ? '➔ Kohde (Kiinteistö):'
+              : '  Kohde (Kiinteistö):'}
+          </Text>
+        </Box>
         <Text color="#1ABC9C" bold>
           ◀ {propName} ▶
         </Text>
@@ -3288,13 +3289,14 @@ export function Dashboard() {
     )
     const rowSelect = (idx: number, label: string, value: string) => (
       <Box flexDirection="row" key={`f${idx}`}>
-        <Text
-          width={26}
-          color={activeField === idx ? C : '#FFFFFF'}
-          bold={activeField === idx}
-        >
-          {activeField === idx ? `➔ ${label}` : `  ${label}`}
-        </Text>
+        <Box width={26}>
+          <Text
+            color={activeField === idx ? C : '#FFFFFF'}
+            bold={activeField === idx}
+          >
+            {activeField === idx ? `➔ ${label}` : `  ${label}`}
+          </Text>
+        </Box>
         <Text color="#1ABC9C" bold>
           ◀ {value} ▶
         </Text>
@@ -3307,13 +3309,14 @@ export function Dashboard() {
       placeholder: string,
     ) => (
       <Box flexDirection="row" key={`f${idx}`}>
-        <Text
-          width={26}
-          color={activeField === idx ? C : '#FFFFFF'}
-          bold={activeField === idx}
-        >
-          {activeField === idx ? `➔ ${label}` : `  ${label}`}
-        </Text>
+        <Box width={26}>
+          <Text
+            color={activeField === idx ? C : '#FFFFFF'}
+            bold={activeField === idx}
+          >
+            {activeField === idx ? `➔ ${label}` : `  ${label}`}
+          </Text>
+        </Box>
         <Text color={activeField === idx ? '#FFFFFF' : '#999999'}>
           {value || chalk.gray(placeholder)}
           {activeField === idx && '█'}
@@ -3560,14 +3563,15 @@ export function Dashboard() {
               const excluded = formBulkExcluded.includes(f.id)
               return (
                 <Box key={f.id} flexDirection="row">
-                  <Text
-                    width={30}
-                    color={activeField === idx ? '#E67E22' : '#FFFFFF'}
-                    bold={activeField === idx}
-                  >
-                    {activeField === idx ? `➔ ${f.name}` : `  ${f.name}`}{' '}
-                    <Text color="#666666">({FIREPLACE_LABELS[f.type]})</Text>
-                  </Text>
+                  <Box width={30}>
+                    <Text
+                      color={activeField === idx ? '#E67E22' : '#FFFFFF'}
+                      bold={activeField === idx}
+                    >
+                      {activeField === idx ? `➔ ${f.name}` : `  ${f.name}`}{' '}
+                      <Text color="#666666">({FIREPLACE_LABELS[f.type]})</Text>
+                    </Text>
+                  </Box>
                   <Text color={excluded ? '#E74C3C' : '#2ECC71'} bold>
                     ◀ {excluded ? 'EI NUOHOTTU' : 'NUOHOTTU'} ▶
                   </Text>
@@ -3663,23 +3667,24 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#8A2BE2" align="center">
+          <Text bold color="#8A2BE2">
             {isEditing ? '✏ MUOKKAA KIINTEISTÖÄ' : '➕ LISÄÄ UUSI KIINTEISTÖ'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Siirry nuoli ylös/alas tai Tab-näppäimellä. Tallenna painamalla
             Enter alimmassa kentässä.
           </Text>
 
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 0 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0 ? '➔ Kohteen nimi:' : '  Kohteen nimi:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 0 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0 ? '➔ Kohteen nimi:' : '  Kohteen nimi:'}
+                </Text>
+              </Box>
               <Text color={activeField === 0 ? '#FFFFFF' : '#999999'}>
                 {formPropName || chalk.gray('(esim. Saunamökki)')}
                 {activeField === 0 && '█'}
@@ -3687,15 +3692,16 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 1 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1
-                  ? '➔ Kiinteistötunnus:'
-                  : '  Kiinteistötunnus:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 1 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1
+                    ? '➔ Kiinteistötunnus:'
+                    : '  Kiinteistötunnus:'}
+                </Text>
+              </Box>
               <Text color={activeField === 1 ? '#FFFFFF' : '#999999'}>
                 {formPropTunnus || chalk.gray('(esim. 405-412-1-23)')}
                 {activeField === 1 && '█'}
@@ -3703,15 +3709,16 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 2 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2
-                  ? '➔ Vesijärjestelmä:'
-                  : '  Vesijärjestelmä:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 2 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2
+                    ? '➔ Vesijärjestelmä:'
+                    : '  Vesijärjestelmä:'}
+                </Text>
+              </Box>
               <Text color="#A29BFE" bold>
                 ◀{' '}
                 {formPropWater === 'well'
@@ -3722,13 +3729,14 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 3 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3 ? '➔ Rakennusvuosi:' : '  Rakennusvuosi:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 3 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3 ? '➔ Rakennusvuosi:' : '  Rakennusvuosi:'}
+                </Text>
+              </Box>
               <Text color={activeField === 3 ? '#FFFFFF' : '#999999'}>
                 {formPropYear}
                 {activeField === 3 && '█'}
@@ -3736,13 +3744,14 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 4 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 4}
-              >
-                {activeField === 4 ? '➔ Sijainti:' : '  Sijainti:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 4 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 4}
+                >
+                  {activeField === 4 ? '➔ Sijainti:' : '  Sijainti:'}
+                </Text>
+              </Box>
               <Text color={activeField === 4 ? '#FFFFFF' : '#999999'}>
                 {formPropLoc || chalk.gray('(esim. Sysmä)')}
                 {activeField === 4 && '█'}
@@ -3750,26 +3759,28 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 5 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 5}
-              >
-                {activeField === 5 ? '➔ Sauna:' : '  Sauna:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 5 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 5}
+                >
+                  {activeField === 5 ? '➔ Sauna:' : '  Sauna:'}
+                </Text>
+              </Box>
               <Text color="#C39BD3" bold>
                 ◀ {SAUNA_LABELS[formPropSaunaType]} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 6 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 6}
-              >
-                {activeField === 6 ? '➔ Saunan tiedot:' : '  Saunan tiedot:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 6 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 6}
+                >
+                  {activeField === 6 ? '➔ Saunan tiedot:' : '  Saunan tiedot:'}
+                </Text>
+              </Box>
               <Text color={activeField === 6 ? '#FFFFFF' : '#999999'}>
                 {formPropSaunaInfo ||
                   chalk.gray('(esim. Erillinen rantasauna)')}
@@ -3778,28 +3789,32 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 7 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 7}
-              >
-                {activeField === 7
-                  ? '➔ Kiinteistövero (€/v):'
-                  : '  Kiinteistövero (€/v):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 7 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 7}
+                >
+                  {activeField === 7
+                    ? '➔ Kiinteistövero (€/v):'
+                    : '  Kiinteistövero (€/v):'}
+                </Text>
+              </Box>
               <Text color={activeField === 7 ? '#FFFFFF' : '#999999'}>
                 {formPropTax} €{activeField === 7 && '█'}
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 8 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 8}
-              >
-                {activeField === 8 ? '➔ Tiekunta (€/v):' : '  Tiekunta (€/v):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 8 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 8}
+                >
+                  {activeField === 8
+                    ? '➔ Tiekunta (€/v):'
+                    : '  Tiekunta (€/v):'}
+                </Text>
+              </Box>
               <Text color={activeField === 8 ? '#FFFFFF' : '#999999'}>
                 {formPropRoadFee} €{activeField === 8 && '█'}
               </Text>
@@ -3861,13 +3876,14 @@ export function Dashboard() {
               )
               .map(([idx, label, value, ph]) => (
                 <Box flexDirection="row" key={idx}>
-                  <Text
-                    width={25}
-                    color={activeField === idx ? '#8A2BE2' : '#FFFFFF'}
-                    bold={activeField === idx}
-                  >
-                    {activeField === idx ? `➔ ${label}` : `  ${label}`}
-                  </Text>
+                  <Box width={25}>
+                    <Text
+                      color={activeField === idx ? '#8A2BE2' : '#FFFFFF'}
+                      bold={activeField === idx}
+                    >
+                      {activeField === idx ? `➔ ${label}` : `  ${label}`}
+                    </Text>
+                  </Box>
                   <Text color={activeField === idx ? '#FFFFFF' : '#999999'}>
                     {value || chalk.gray(ph)}
                     {activeField === idx && '█'}
@@ -3875,41 +3891,44 @@ export function Dashboard() {
                 </Box>
               ))}
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 14 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 14}
-              >
-                {activeField === 14 ? '➔ Biojäte:' : '  Biojäte:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 14 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 14}
+                >
+                  {activeField === 14 ? '➔ Biojäte:' : '  Biojäte:'}
+                </Text>
+              </Box>
               <Text color="#C39BD3" bold>
                 ◀ {BIOWASTE_LABELS[formPropBiowaste]} ▶
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 15 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 15}
-              >
-                {activeField === 15
-                  ? '➔ Kompostointi ilmoitettu:'
-                  : '  Kompostointi ilmoitettu:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 15 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 15}
+                >
+                  {activeField === 15
+                    ? '➔ Kompostointi ilmoitettu:'
+                    : '  Kompostointi ilmoitettu:'}
+                </Text>
+              </Box>
               <Text color="#C39BD3" bold>
                 ◀ {formPropCompostReg ? 'KYLLÄ' : 'EI'} ▶
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 16 ? '#8A2BE2' : '#FFFFFF'}
-                bold={activeField === 16}
-              >
-                {activeField === 16
-                  ? '➔ Ilmoituksen pvm:'
-                  : '  Ilmoituksen pvm:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 16 ? '#8A2BE2' : '#FFFFFF'}
+                  bold={activeField === 16}
+                >
+                  {activeField === 16
+                    ? '➔ Ilmoituksen pvm:'
+                    : '  Ilmoituksen pvm:'}
+                </Text>
+              </Box>
               <Text color={activeField === 16 ? '#FFFFFF' : '#999999'}>
                 {formPropCompostDate || chalk.gray('(YYYY-MM-DD, valinnainen)')}
                 {activeField === 16 && '█'}
@@ -3953,40 +3972,42 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#FF8C42" align="center">
+          <Text bold color="#FF8C42">
             {isEditing ? '✏ MUOKKAA TEHTÄVÄÄ' : '➕ LISÄÄ UUSI TEHTÄVÄ'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Siirry nuoli ylös/alas, muokkaa tekstiä suoraan. Peruuta painamalla
             [Esc].
           </Text>
 
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 0 ? '#FF8C42' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0
-                  ? '➔ Kohde (Kiinteistö):'
-                  : '  Kohde (Kiinteistö):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 0 ? '#FF8C42' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0
+                    ? '➔ Kohde (Kiinteistö):'
+                    : '  Kohde (Kiinteistö):'}
+                </Text>
+              </Box>
               <Text color="#FFAF40" bold>
                 ◀ {activePropName} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 1 ? '#FF8C42' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1
-                  ? '➔ Tehtävän kuvaus:'
-                  : '  Tehtävän kuvaus:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 1 ? '#FF8C42' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1
+                    ? '➔ Tehtävän kuvaus:'
+                    : '  Tehtävän kuvaus:'}
+                </Text>
+              </Box>
               <Text color={activeField === 1 ? '#FFFFFF' : '#999999'}>
                 {formTitle || chalk.gray('(Kirjoita tähän...)')}
                 {activeField === 1 && '█'}
@@ -3994,13 +4015,14 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 2 ? '#FF8C42' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2 ? '➔ Kategoria:' : '  Kategoria:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 2 ? '#FF8C42' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2 ? '➔ Kategoria:' : '  Kategoria:'}
+                </Text>
+              </Box>
               <Text color={activeField === 2 ? '#FFFFFF' : '#999999'}>
                 {formCategory || chalk.gray('esim. Vesi, Ylläpito, Nuohous')}
                 {activeField === 2 && '█'}
@@ -4008,41 +4030,44 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 3 ? '#FF8C42' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3 ? '➔ Kiireellisyys:' : '  Kiireellisyys:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 3 ? '#FF8C42' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3 ? '➔ Kiireellisyys:' : '  Kiireellisyys:'}
+                </Text>
+              </Box>
               <Text color="#FFAF40" bold>
                 ◀ {formPriority.toUpperCase()} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 4 ? '#FF8C42' : '#FFFFFF'}
-                bold={activeField === 4}
-              >
-                {activeField === 4
-                  ? '➔ Arvioidut kulut (€):'
-                  : '  Arvioidut kulut (€):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 4 ? '#FF8C42' : '#FFFFFF'}
+                  bold={activeField === 4}
+                >
+                  {activeField === 4
+                    ? '➔ Arvioidut kulut (€):'
+                    : '  Arvioidut kulut (€):'}
+                </Text>
+              </Box>
               <Text color={activeField === 4 ? '#FFFFFF' : '#999999'}>
                 {formCost} €{activeField === 4 && '█'}
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 5 ? '#FF8C42' : '#FFFFFF'}
-                bold={activeField === 5}
-              >
-                {activeField === 5 ? '➔ Toistuvuus:' : '  Toistuvuus:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 5 ? '#FF8C42' : '#FFFFFF'}
+                  bold={activeField === 5}
+                >
+                  {activeField === 5 ? '➔ Toistuvuus:' : '  Toistuvuus:'}
+                </Text>
+              </Box>
               <Text color="#FFAF40" bold>
                 ◀ {RECURRENCE_LABELS[formRecurrence]} ▶
               </Text>
@@ -4087,40 +4112,42 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#2ECC71" align="center">
+          <Text bold color="#2ECC71">
             {isEditing
               ? '✏ MUOKKAA REMONTTIHANKE-BUDJETTIA'
               : '➕ LISÄÄ UUSI REMONTTIHANKE'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Nuolet ylh./alas = kentät | Nuolet vas./oik. = valinnat | [Esc] =
             peruuta
           </Text>
 
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 0 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0
-                  ? '➔ Kohde (Kiinteistö):'
-                  : '  Kohde (Kiinteistö):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 0 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0
+                    ? '➔ Kohde (Kiinteistö):'
+                    : '  Kohde (Kiinteistö):'}
+                </Text>
+              </Box>
               <Text color="#2ECC71" bold>
                 ◀ {activePropName} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 1 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1 ? '➔ Hankkeen nimi:' : '  Hankkeen nimi:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 1 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1 ? '➔ Hankkeen nimi:' : '  Hankkeen nimi:'}
+                </Text>
+              </Box>
               <Text color={activeField === 1 ? '#FFFFFF' : '#999999'}>
                 {formRenName || chalk.gray('(Kirjoita tähän...)')}
                 {activeField === 1 && '█'}
@@ -4128,54 +4155,58 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 2 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2 ? '➔ Tila:' : '  Tila:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 2 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2 ? '➔ Tila:' : '  Tila:'}
+                </Text>
+              </Box>
               <Text color="#F1C40F" bold>
                 ◀ {STATUS_LABELS[formRenStatus]} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 3 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3 ? '➔ Budjetti (€):' : '  Budjetti (€):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 3 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3 ? '➔ Budjetti (€):' : '  Budjetti (€):'}
+                </Text>
+              </Box>
               <Text color={activeField === 3 ? '#FFFFFF' : '#999999'}>
                 {formRenBudget} €{activeField === 3 && '█'}
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 4 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 4}
-              >
-                {activeField === 4 ? '➔ Kulutettu (€):' : '  Kulutettu (€):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 4 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 4}
+                >
+                  {activeField === 4 ? '➔ Kulutettu (€):' : '  Kulutettu (€):'}
+                </Text>
+              </Box>
               <Text color={activeField === 4 ? '#FFFFFF' : '#999999'}>
                 {formRenSpent} €{activeField === 4 && '█'}
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 5 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 5}
-              >
-                {activeField === 5
-                  ? '➔ Aloitus (YYYY-MM-DD):'
-                  : '  Aloitus (YYYY-MM-DD):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 5 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 5}
+                >
+                  {activeField === 5
+                    ? '➔ Aloitus (YYYY-MM-DD):'
+                    : '  Aloitus (YYYY-MM-DD):'}
+                </Text>
+              </Box>
               <Text color={activeField === 5 ? '#FFFFFF' : '#999999'}>
                 {formRenStartDate || chalk.gray('(esim. 2026-06-08)')}
                 {activeField === 5 && '█'}
@@ -4183,15 +4214,16 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 6 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 6}
-              >
-                {activeField === 6
-                  ? '➔ Loppu (YYYY-MM-DD/tyhjä):'
-                  : '  Loppu (YYYY-MM-DD/tyhjä):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 6 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 6}
+                >
+                  {activeField === 6
+                    ? '➔ Loppu (YYYY-MM-DD/tyhjä):'
+                    : '  Loppu (YYYY-MM-DD/tyhjä):'}
+                </Text>
+              </Box>
               <Text color={activeField === 6 ? '#FFFFFF' : '#999999'}>
                 {formRenEndDate || chalk.gray('(ei päättynyt)')}
                 {activeField === 6 && '█'}
@@ -4228,22 +4260,23 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#E74C3C" align="center">
+          <Text bold color="#E74C3C">
             {isEditing ? '✏ MUOKKAA LAITETTA' : '➕ LISÄÄ UUSI LAITE / TYÖKALU'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Nuolet ylh./alas = kentät | Nuolet vas./oik. = valinnat | [Esc] =
             peruuta
           </Text>
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 0 ? '#E74C3C' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0 ? '➔ Laitteen nimi:' : '  Laitteen nimi:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 0 ? '#E74C3C' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0 ? '➔ Laitteen nimi:' : '  Laitteen nimi:'}
+                </Text>
+              </Box>
               <Text color={activeField === 0 ? '#FFFFFF' : '#999999'}>
                 {formToolName || chalk.gray('(esim. Husqvarna Moottorisaha)')}
                 {activeField === 0 && '█'}
@@ -4251,26 +4284,30 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 1 ? '#E74C3C' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1 ? '➔ Kuntotila:' : '  Kuntotila:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 1 ? '#E74C3C' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1 ? '➔ Kuntotila:' : '  Kuntotila:'}
+                </Text>
+              </Box>
               <Text color="#FFAF40" bold>
                 ◀ {STATUS_LABELS[formToolStatus]} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 2 ? '#E74C3C' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2 ? '➔ Sijaintipaikka:' : '  Sijaintipaikka:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 2 ? '#E74C3C' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2
+                    ? '➔ Sijaintipaikka:'
+                    : '  Sijaintipaikka:'}
+                </Text>
+              </Box>
               <Text color={activeField === 2 ? '#FFFFFF' : '#999999'}>
                 {formToolLocation || chalk.gray('(esim. Pappilan autotalli)')}
                 {activeField === 2 && '█'}
@@ -4278,13 +4315,14 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 3 ? '#E74C3C' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3 ? '➔ Hankintapvm:' : '  Hankintapvm:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 3 ? '#E74C3C' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3 ? '➔ Hankintapvm:' : '  Hankintapvm:'}
+                </Text>
+              </Box>
               <Text color={activeField === 3 ? '#FFFFFF' : '#999999'}>
                 {formToolPurchaseDate}
                 {activeField === 3 && '█'}
@@ -4318,42 +4356,44 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#2ECC71" align="center">
+          <Text bold color="#2ECC71">
             {isEditing
               ? '✏ MUOKKAA TAPAHTUMAA'
               : '➕ LISÄÄ UUSI TALOUSTAPAHTUMA'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Siirry nuoli ylös/alas, muokkaa tekstiä suoraan. Peruuta painamalla
             [Esc].
           </Text>
 
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 0 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0
-                  ? '➔ Kohde (Kiinteistö):'
-                  : '  Kohde (Kiinteistö):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 0 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0
+                    ? '➔ Kohde (Kiinteistö):'
+                    : '  Kohde (Kiinteistö):'}
+                </Text>
+              </Box>
               <Text color="#2ECC71" bold>
                 ◀ {activePropName} ▶
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 1 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1
-                  ? '➔ Tyyppi (Tulo/Meno):'
-                  : '  Tyyppi (Tulo/Meno):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 1 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1
+                    ? '➔ Tyyppi (Tulo/Meno):'
+                    : '  Tyyppi (Tulo/Meno):'}
+                </Text>
+              </Box>
               <Text
                 color={formTxType === 'income' ? '#2ECC71' : '#E74C3C'}
                 bold
@@ -4363,13 +4403,14 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 2 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2 ? '➔ Kategoria:' : '  Kategoria:'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 2 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2 ? '➔ Kategoria:' : '  Kategoria:'}
+                </Text>
+              </Box>
               <Text color={activeField === 2 ? '#FFFFFF' : '#999999'}>
                 {formCategory ||
                   chalk.gray('esim. Vuokra, Remontti, Sähkö, Puut')}
@@ -4378,28 +4419,30 @@ export function Dashboard() {
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 3 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3 ? '➔ Rahamäärä (€):' : '  Rahamäärä (€):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 3 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3 ? '➔ Rahamäärä (€):' : '  Rahamäärä (€):'}
+                </Text>
+              </Box>
               <Text color={activeField === 3 ? '#FFFFFF' : '#999999'}>
                 {formTxAmount} €{activeField === 3 && '█'}
               </Text>
             </Box>
 
             <Box flexDirection="row">
-              <Text
-                width={25}
-                color={activeField === 4 ? '#2ECC71' : '#FFFFFF'}
-                bold={activeField === 4}
-              >
-                {activeField === 4
-                  ? '➔ Selite (Kuvaus):'
-                  : '  Selite (Kuvaus):'}
-              </Text>
+              <Box width={25}>
+                <Text
+                  color={activeField === 4 ? '#2ECC71' : '#FFFFFF'}
+                  bold={activeField === 4}
+                >
+                  {activeField === 4
+                    ? '➔ Selite (Kuvaus):'
+                    : '  Selite (Kuvaus):'}
+                </Text>
+              </Box>
               <Text color={activeField === 4 ? '#FFFFFF' : '#999999'}>
                 {formTxDesc || chalk.gray('(Kirjoita tähän...)')}
                 {activeField === 4 && '█'}
@@ -4450,92 +4493,98 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#3498DB" align="center">
+          <Text bold color="#3498DB">
             {isEditing
               ? '✏ MUOKKAA KULUTUSLASKUA'
               : '➕ KIRJAA UUSI KULUTUSLASKU'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Nuolet ylh./alas = kentät | Nuolet vas./oik. = valinnat | [Esc] =
             peruuta
           </Text>
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 0 ? '#3498DB' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0 ? '➔ Kiinteistö:' : '  Kiinteistö:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 0 ? '#3498DB' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0 ? '➔ Kiinteistö:' : '  Kiinteistö:'}
+                </Text>
+              </Box>
               <Text color="#A29BFE" bold>
                 ◄ {activePropName} ►
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 1 ? '#3498DB' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1 ? '➔ Laskutyyppi:' : '  Laskutyyppi:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 1 ? '#3498DB' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1 ? '➔ Laskutyyppi:' : '  Laskutyyppi:'}
+                </Text>
+              </Box>
               <Text color="#F1C40F" bold>
                 ◄ {UTIL_TYPE_LABELS[formUtilType]} ►
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 2 ? '#3498DB' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2 ? '➔ Toimittaja:' : '  Toimittaja:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 2 ? '#3498DB' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2 ? '➔ Toimittaja:' : '  Toimittaja:'}
+                </Text>
+              </Box>
               <Text color={activeField === 2 ? '#FFFFFF' : '#999999'}>
                 {formUtilProvider || '(esim. Caruna, Fortum, Helen)'}
                 {activeField === 2 && '█'}
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 3 ? '#3498DB' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3
-                  ? '➔ Laskun summa (€):'
-                  : '  Laskun summa (€):'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 3 ? '#3498DB' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3
+                    ? '➔ Laskun summa (€):'
+                    : '  Laskun summa (€):'}
+                </Text>
+              </Box>
               <Text color={activeField === 3 ? '#FFFFFF' : '#999999'}>
                 {formUtilAmount} €{activeField === 3 && '█'}
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 4 ? '#3498DB' : '#FFFFFF'}
-                bold={activeField === 4}
-              >
-                {activeField === 4
-                  ? `➔ Kulutus (${usageUnit}):`
-                  : `  Kulutus (${usageUnit}):`}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 4 ? '#3498DB' : '#FFFFFF'}
+                  bold={activeField === 4}
+                >
+                  {activeField === 4
+                    ? `➔ Kulutus (${usageUnit}):`
+                    : `  Kulutus (${usageUnit}):`}
+                </Text>
+              </Box>
               <Text color={activeField === 4 ? '#FFFFFF' : '#999999'}>
                 {formUtilUsage} {usageUnit}
                 {activeField === 4 && '█'}
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 5 ? '#3498DB' : '#FFFFFF'}
-                bold={activeField === 5}
-              >
-                {activeField === 5
-                  ? '➔ Laskutuskausi (YYYY-MM):'
-                  : '  Laskutuskausi (YYYY-MM):'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 5 ? '#3498DB' : '#FFFFFF'}
+                  bold={activeField === 5}
+                >
+                  {activeField === 5
+                    ? '➔ Laskutuskausi (YYYY-MM):'
+                    : '  Laskutuskausi (YYYY-MM):'}
+                </Text>
+              </Box>
               <Text color={activeField === 5 ? '#FFFFFF' : '#999999'}>
                 {formUtilMonth || '(esim. 2026-05)'}
                 {activeField === 5 && '█'}
@@ -4568,38 +4617,40 @@ export function Dashboard() {
           padding={1}
           marginY={1}
         >
-          <Text bold color="#9B59B6" align="center">
+          <Text bold color="#9B59B6">
             {isEditing
               ? '✏ MUOKKAA VAKUUTUSTA'
               : '➕ LISÄÄ UUSI VAKUUTUSSOPIMUS'}
           </Text>
-          <Text color="#888888" italic align="center">
+          <Text color="#888888" italic>
             Nuolet ylh./alas = kentät | Nuolet vas./oik. = kohteen vaihto |
             [Esc] = peruuta
           </Text>
           <Box flexDirection="column" marginTop={1} gap={1}>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 0 ? '#9B59B6' : '#FFFFFF'}
-                bold={activeField === 0}
-              >
-                {activeField === 0 ? '➔ Kiinteistö:' : '  Kiinteistö:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 0 ? '#9B59B6' : '#FFFFFF'}
+                  bold={activeField === 0}
+                >
+                  {activeField === 0 ? '➔ Kiinteistö:' : '  Kiinteistö:'}
+                </Text>
+              </Box>
               <Text color="#A29BFE" bold>
                 ◄ {activePropName} ►
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 1 ? '#9B59B6' : '#FFFFFF'}
-                bold={activeField === 1}
-              >
-                {activeField === 1
-                  ? '➔ Vakuutuksen nimi:'
-                  : '  Vakuutuksen nimi:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 1 ? '#9B59B6' : '#FFFFFF'}
+                  bold={activeField === 1}
+                >
+                  {activeField === 1
+                    ? '➔ Vakuutuksen nimi:'
+                    : '  Vakuutuksen nimi:'}
+                </Text>
+              </Box>
               <Text color={activeField === 1 ? '#FFFFFF' : '#999999'}>
                 {formInsPolicyName ||
                   chalk.gray('(esim. Mökin täysarvovakuutus)')}
@@ -4607,13 +4658,14 @@ export function Dashboard() {
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 2 ? '#9B59B6' : '#FFFFFF'}
-                bold={activeField === 2}
-              >
-                {activeField === 2 ? '➔ Vakuutusyhtiö:' : '  Vakuutusyhtiö:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 2 ? '#9B59B6' : '#FFFFFF'}
+                  bold={activeField === 2}
+                >
+                  {activeField === 2 ? '➔ Vakuutusyhtiö:' : '  Vakuutusyhtiö:'}
+                </Text>
+              </Box>
               <Text color={activeField === 2 ? '#FFFFFF' : '#999999'}>
                 {formInsProvider ||
                   chalk.gray('(esim. LähiTapiola, If, Pohjola)')}
@@ -4621,42 +4673,47 @@ export function Dashboard() {
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 3 ? '#9B59B6' : '#FFFFFF'}
-                bold={activeField === 3}
-              >
-                {activeField === 3 ? '➔ Vuosimaksu (€):' : '  Vuosimaksu (€):'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 3 ? '#9B59B6' : '#FFFFFF'}
+                  bold={activeField === 3}
+                >
+                  {activeField === 3
+                    ? '➔ Vuosimaksu (€):'
+                    : '  Vuosimaksu (€):'}
+                </Text>
+              </Box>
               <Text color={activeField === 3 ? '#FFFFFF' : '#999999'}>
                 {formInsPremium} €{activeField === 3 && '█'}
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 4 ? '#9B59B6' : '#FFFFFF'}
-                bold={activeField === 4}
-              >
-                {activeField === 4
-                  ? '➔ Uusimispvm (YYYY-MM-DD):'
-                  : '  Uusimispvm (YYYY-MM-DD):'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 4 ? '#9B59B6' : '#FFFFFF'}
+                  bold={activeField === 4}
+                >
+                  {activeField === 4
+                    ? '➔ Uusimispvm (YYYY-MM-DD):'
+                    : '  Uusimispvm (YYYY-MM-DD):'}
+                </Text>
+              </Box>
               <Text color={activeField === 4 ? '#FFFFFF' : '#999999'}>
                 {formInsRenewalDate}
                 {activeField === 4 && '█'}
               </Text>
             </Box>
             <Box flexDirection="row">
-              <Text
-                width={28}
-                color={activeField === 5 ? '#9B59B6' : '#FFFFFF'}
-                bold={activeField === 5}
-              >
-                {activeField === 5
-                  ? '➔ Kattavuus / huomiot:'
-                  : '  Kattavuus / huomiot:'}
-              </Text>
+              <Box width={28}>
+                <Text
+                  color={activeField === 5 ? '#9B59B6' : '#FFFFFF'}
+                  bold={activeField === 5}
+                >
+                  {activeField === 5
+                    ? '➔ Kattavuus / huomiot:'
+                    : '  Kattavuus / huomiot:'}
+                </Text>
+              </Box>
               <Text color={activeField === 5 ? '#FFFFFF' : '#999999'}>
                 {formInsCoverageDetails ||
                   chalk.gray('(esim. palo, vesi, irtaimisto)')}
@@ -4923,9 +4980,11 @@ export function Dashboard() {
                   width={isWide ? halfWidth - 6 : layoutWidth - 6}
                 />
 
-                <Text bold marginTop={1} marginBottom={1} color="#2ECC71">
-                  Aktiiviset projektit:
-                </Text>
+                <Box marginTop={1} marginBottom={1}>
+                  <Text bold color="#2ECC71">
+                    Aktiiviset projektit:
+                  </Text>
+                </Box>
                 {renovations.map((r) => (
                   <Box key={r.id} flexDirection="column" marginBottom={1}>
                     <Box justifyContent="space-between">
@@ -5551,15 +5610,15 @@ export function Dashboard() {
                   {' '}
                 </Text>
               </Box>
-              <Text bold width={22}>
-                Laite / Työkalu
-              </Text>
-              <Text bold width={14}>
-                Kuntotila
-              </Text>
-              <Text bold width={20}>
-                Sijaintipaikka
-              </Text>
+              <Box width={22}>
+                <Text bold>Laite / Työkalu</Text>
+              </Box>
+              <Box width={14}>
+                <Text bold>Kuntotila</Text>
+              </Box>
+              <Box width={20}>
+                <Text bold>Sijaintipaikka</Text>
+              </Box>
             </Box>
             {tools.map((t, idx) => {
               const isSelected = idx === selectedToolIndex
@@ -5587,15 +5646,21 @@ export function Dashboard() {
                       {isSelected ? '➔' : ' '}
                     </Text>
                   </Box>
-                  <Text width={22} color="#FFFFFF" bold={isSelected}>
-                    {t.name}
-                  </Text>
-                  <Text width={14} color={statusColor} bold={isSelected}>
-                    {statusLabel}
-                  </Text>
-                  <Text width={20} color="#A29BFE" bold={isSelected}>
-                    {t.location}
-                  </Text>
+                  <Box width={22}>
+                    <Text color="#FFFFFF" bold={isSelected}>
+                      {t.name}
+                    </Text>
+                  </Box>
+                  <Box width={14}>
+                    <Text color={statusColor} bold={isSelected}>
+                      {statusLabel}
+                    </Text>
+                  </Box>
+                  <Box width={20}>
+                    <Text color="#A29BFE" bold={isSelected}>
+                      {t.location}
+                    </Text>
+                  </Box>
                 </Box>
               )
             })}
@@ -5631,9 +5696,11 @@ export function Dashboard() {
                       {ins.premium.toFixed(2)} € / v
                     </Text>
                   </Box>
-                  <Text color="#FFAF40" marginY={1}>
-                    Yhtiö: {ins.provider} | Uusitaan: {ins.renewal_date}
-                  </Text>
+                  <Box marginY={1}>
+                    <Text color="#FFAF40">
+                      Yhtiö: {ins.provider} | Uusitaan: {ins.renewal_date}
+                    </Text>
+                  </Box>
                   <Text color="#888888" italic>
                     Kattavuus: {ins.coverage_details}
                   </Text>
