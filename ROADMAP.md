@@ -110,7 +110,6 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [ ] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (companion to TUI)
 - [ ] [#24](https://github.com/mongrelx/taloni/issues/24) — Notification system (reminders & alerts)
 - [~] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking (osittain: kulujen linkitys remonttiin + `taloni renovations` budjettivertailu toteutettu; materiaali/työkustannusarviot ja historiadata vielä auki)
-- [ ] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking
 - [ ] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration
 - [~] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison (osittain: `taloni portfolio [vuosi]` toteutettu — vertailu, käyttöaste, ROI; arvonseuranta ajan yli vielä auki, tarvitsee tietolähdepäätöksen)
 - [~] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (osittain: `taloni export-json` ja `taloni import properties|transactions <csv>` toteutettu; muista työkaluista tuonti ja PostgreSQL-migraatio-opas vielä auki)
@@ -123,4 +122,5 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 ### Ylläpito (valmiit)
 
 - [x] [#41](https://github.com/mongrelx/taloni/issues/41) — Refactor: split `db.ts` into `src/db/` domain modules (types, schema, migrations, seed, repositories/*)
+- [x] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking: `taloni energy [vuosi]` — energiatodistus, kWh/m²/v, parannusehdotukset (build_year + lämmitysmuoto)
 - [x] Korjattu Ink `<Text>`-komponentin virheelliset layout-propsit (`width`/`align`/`marginTop`/`marginY`) siirtämällä ne `<Box>`-kääreeseen — CI:n `tsc --noEmit`-vaihe vihreä ensimmäistä kertaa (ei liittynyt yksittäiseen issueen, löytyi #41:n sivutuotteena)
