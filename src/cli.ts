@@ -23,6 +23,7 @@ import {
 import {
   annualReport,
   buildCsvExports,
+  buildGalleryHtml,
   buildJsonExport,
   energyEfficiencyReport,
   formatAlerts,
@@ -371,6 +372,17 @@ program
     const file = fileArg || join(process.cwd(), 'taloni-export.json')
     writeFileSync(file, JSON.stringify(buildJsonExport(), null, 2), 'utf8')
     console.log(`JSON-vienti valmis: ${file}`)
+  })
+
+// Command: gallery — kuvagalleria & asiakirjat HTML-tiedostoksi (issue #20)
+program
+  .command('gallery')
+  .description('Export a photo/document gallery as a static HTML file')
+  .argument('[file]', 'Target file (default: ./taloni-gallery.html)')
+  .action((fileArg) => {
+    const file = fileArg || join(process.cwd(), 'taloni-gallery.html')
+    writeFileSync(file, buildGalleryHtml(), 'utf8')
+    console.log(`Galleria luotu: ${file}`)
   })
 
 // Command: import — tuo kiinteistöjä tai taloustapahtumia CSV-tiedostosta

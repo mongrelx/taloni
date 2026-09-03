@@ -244,12 +244,21 @@ export type DocumentLinkType =
   | 'wastewater'
   | 'water_test'
   | 'insurance'
+  | 'renovation'
+  | 'task'
 
 export interface Document {
   id: number
   property_id: number
-  // Asiakirjatyyppi: lainhuuto, kauppakirja, rakennuslupa, tarkastuspöytäkirja, takuu, muu
-  doc_type: 'deed' | 'purchase' | 'permit' | 'inspection' | 'warranty' | 'other'
+  // Asiakirjatyyppi: lainhuuto, kauppakirja, rakennuslupa, tarkastuspöytäkirja, takuu, valokuva, muu
+  doc_type:
+    | 'deed'
+    | 'purchase'
+    | 'permit'
+    | 'inspection'
+    | 'warranty'
+    | 'photo'
+    | 'other'
   title: string
   file_path: string // Polku/viite tiedostoon (esim. ~/Documents/lainhuuto.pdf)
   issued_date: string // Päiväys (YYYY-MM-DD)

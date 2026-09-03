@@ -162,6 +162,31 @@ export const migrations: ((db: Db) => void)[] = [
     add('energy_cert_date', "TEXT NOT NULL DEFAULT ''")
     add('energy_cert_valid_until', "TEXT NOT NULL DEFAULT ''")
   },
+  // v10: poista documents.doc_type CHECK-rajoite, jotta 'photo' (ja mahdolliset tulevat
+  // tyypit) sallitaan ilman uutta taulun uudelleenrakennusta joka kerta. Sama menetelmä
+  // kuin v7:ssä (fireplaces.type): SQLite ei salli CHECK-rajoitteen muutosta ALTERilla.
+  (db) => {
+    db.exec('PRAGMA foreign_keys = OFF')
+    db.exec('ALTER TABLE documents RENAME TO documents_old')
+    db.exec(`
+      CREATE TABLE documents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+        doc_type TEXT NOT NULL DEFAULT 'other',
+        title TEXT NOT NULL,
+        file_path TEXT NOT NULL DEFAULT '',
+        issued_date TEXT NOT NULL DEFAULT '',
+        notes TEXT NOT NULL DEFAULT '',
+        linked_type TEXT NOT NULL DEFAULT '',
+        linked_id INTEGER NOT NULL DEFAULT 0
+      );
+    `)
+    db.exec(
+      'INSERT INTO documents (id, property_id, doc_type, title, file_path, issued_date, notes, linked_type, linked_id) SELECT id, property_id, doc_type, title, file_path, issued_date, notes, linked_type, linked_id FROM documents_old',
+    )
+    db.exec('DROP TABLE documents_old')
+    db.exec('PRAGMA foreign_keys = ON')
+  },
 ]
 
 export function runMigrations(db: Db) {

@@ -212,6 +212,16 @@ describe('CLI command integration tests', () => {
     assert.ok(Array.isArray(data.transactions))
   })
 
+  it('gallery command writes an HTML gallery file', () => {
+    const htmlFile = join(testHome, 'gallery.html')
+    const res = runCli(['gallery', htmlFile])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('Galleria luotu'))
+    const html = readFileSync(htmlFile, 'utf8')
+    assert.ok(html.includes('<!doctype html>'))
+    assert.ok(html.includes('Metsäpirtti'))
+  })
+
   it('import command adds a property from CSV', () => {
     const csvFile = join(testHome, 'import-properties.csv')
     writeFileSync(

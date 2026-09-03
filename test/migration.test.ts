@@ -35,6 +35,13 @@ old.exec(
 old.exec(
   `INSERT INTO transactions (property_id, type, category, amount, date, description) VALUES (1,'expense','Remontti',100,'2026-01-01','Vanha kulu');`,
 )
+// Vanha documents-taulu (doc_type CHECK ilman 'photo') v10-migraation testaamiseksi.
+old.exec(
+  `CREATE TABLE documents (id INTEGER PRIMARY KEY AUTOINCREMENT, property_id INTEGER NOT NULL, doc_type TEXT NOT NULL DEFAULT 'other' CHECK(doc_type IN ('deed', 'purchase', 'permit', 'inspection', 'warranty', 'other')), title TEXT NOT NULL, file_path TEXT NOT NULL DEFAULT '', issued_date TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', linked_type TEXT NOT NULL DEFAULT '', linked_id INTEGER NOT NULL DEFAULT 0);`,
+)
+old.exec(
+  `INSERT INTO documents (property_id, doc_type, title) VALUES (1,'inspection','Vanha tarkastuspöytäkirja');`,
+)
 old.exec(`PRAGMA user_version = 1`)
 old.close()
 
@@ -78,4 +85,23 @@ test('old v1 database migrates without data loss', async () => {
   assert.equal(props[0]!.energy_rating, '')
   assert.equal(props[0]!.energy_cert_date, '')
   assert.equal(props[0]!.energy_cert_valid_until, '')
+
+  // v10: vanha documents-rivi säilyy, ja 'photo'-tyyppi hyväksytään enää CHECK-rajoitteen jälkeen
+  const oldDoc = db
+    .getDocuments()
+    .find((d) => d.title === 'Vanha tarkastuspöytäkirja')
+  assert.ok(oldDoc)
+  assert.equal(oldDoc?.doc_type, 'inspection')
+  assert.doesNotThrow(() => {
+    db.addDocument({
+      property_id: props[0]!.id,
+      doc_type: 'photo',
+      title: 'Uusi valokuva',
+      file_path: '~/photos/x.jpg',
+      issued_date: '2026-06-01',
+      notes: '',
+      linked_type: '',
+      linked_id: 0,
+    })
+  })
 })

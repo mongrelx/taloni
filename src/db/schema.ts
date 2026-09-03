@@ -237,7 +237,7 @@ export function initDb(): Db {
     CREATE TABLE IF NOT EXISTS documents (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
-      doc_type TEXT NOT NULL DEFAULT 'other' CHECK(doc_type IN ('deed', 'purchase', 'permit', 'inspection', 'warranty', 'other')),
+      doc_type TEXT NOT NULL DEFAULT 'other' CHECK(doc_type IN ('deed', 'purchase', 'permit', 'inspection', 'warranty', 'photo', 'other')),
       title TEXT NOT NULL,
       file_path TEXT NOT NULL DEFAULT '',
       issued_date TEXT NOT NULL DEFAULT '',

@@ -1,4 +1,6 @@
 // Raportointi & vienti — vuosikooste, vuokratuloraportti (verottajalle), CSV/JSON-vienti ja -tuonti.
+import { homedir } from 'node:os'
+import { join } from 'node:path'
 import {
   addProperty,
   addTransaction,
@@ -691,6 +693,93 @@ export function buildJsonExport(): Record<string, unknown> {
     meterReadings: getMeterReadings(),
     buildingMaterials: getBuildingMaterials(),
   }
+}
+
+// --- Kuvagalleria (HTML-vienti, issue #20) ---
+
+const IMAGE_EXTENSIONS = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.bmp',
+])
+
+export function isImageFile(filePath: string): boolean {
+  const dot = filePath.lastIndexOf('.')
+  if (dot === -1) return false
+  return IMAGE_EXTENSIONS.has(filePath.slice(dot).toLowerCase())
+}
+
+// Laajentaa "~/"-alkuisen polun käyttäjän kotihakemistoon ja muodostaa file://-URL:n,
+// jotta selain löytää tiedoston riippumatta siitä miten HTML-tiedosto itse avataan.
+function resolveFileUrl(p: string): string {
+  const abs = p.startsWith('~/') ? join(homedir(), p.slice(2)) : p
+  return `file://${encodeURI(abs)}`
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+// Staattinen HTML-galleria kaikista asiakirjoista kohteittain: kuvatiedostot (jpg/png/gif/webp/bmp)
+// näytetään inline, muut asiakirjat linkkeinä. Vastaa issuen #20 "Gallery view in TUI ... or
+// export to HTML report" -kohtaa — pääte-emulaattori ei yleisesti tue kuvien piirtoa, joten HTML-
+// vienti on toimivin ratkaisu. Ei sisällä pienoiskuvia (thumbnails) — vaatisi kuvankäsittelykirjaston,
+// eikä sitä ole tarkemmin määritelty; selain skaalaa täyskokoiset kuvat riittävän hyvin gallerianäkymään.
+export function buildGalleryHtml(): string {
+  const props = getProperties()
+  const docs = getDocuments()
+  const sections = props
+    .map((p) => {
+      const propDocs = docs.filter((d) => d.property_id === p.id)
+      if (propDocs.length === 0) return ''
+      const items = propDocs
+        .map((d) => {
+          const href = escapeHtml(resolveFileUrl(d.file_path))
+          const title = escapeHtml(d.title)
+          const meta = escapeHtml(
+            `${d.doc_type}${d.issued_date ? ` · ${d.issued_date}` : ''}`,
+          )
+          if (isImageFile(d.file_path)) {
+            return `<figure><a href="${href}"><img src="${href}" loading="lazy" alt="${title}"></a><figcaption>${title}<br><small>${meta}</small></figcaption></figure>`
+          }
+          return `<div class="doc"><a href="${href}">${title}</a><br><small>${meta}</small></div>`
+        })
+        .join('\n')
+      return `<section><h2>${escapeHtml(p.name)}</h2><div class="grid">${items}</div></section>`
+    })
+    .filter(Boolean)
+    .join('\n')
+
+  return `<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<title>Taloni – Kuvagalleria ja asiakirjat</title>
+<style>
+  body { font-family: sans-serif; background: #1a1a1a; color: #eee; margin: 0; padding: 2rem; }
+  h1 { color: #00D4FF; }
+  h2 { color: #8A2BE2; border-bottom: 1px solid #444; padding-bottom: 0.3rem; }
+  .grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+  figure { margin: 0; width: 220px; }
+  figure img { max-width: 100%; border-radius: 4px; display: block; }
+  figcaption, .doc { font-size: 0.85rem; color: #ccc; }
+  .doc { width: 220px; padding: 1rem; border: 1px solid #444; border-radius: 4px; }
+  a { color: #00D4FF; }
+</style>
+</head>
+<body>
+<h1>🏡 Taloni – Kuvagalleria ja asiakirjat</h1>
+${sections || '<p>Ei asiakirjoja.</p>'}
+</body>
+</html>
+`
 }
 
 // --- Tekstiraportit ---

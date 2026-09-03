@@ -378,6 +378,7 @@ const DOC_TYPES: Document['doc_type'][] = [
   'permit',
   'inspection',
   'warranty',
+  'photo',
   'other',
 ]
 const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
@@ -386,6 +387,7 @@ const DOC_TYPE_LABELS: Record<Document['doc_type'], string> = {
   permit: 'Rakennuslupa',
   inspection: 'Tarkastuspöytäkirja',
   warranty: 'Takuu',
+  photo: 'Valokuva',
   other: 'Muu',
 }
 const METER_TYPES: MeterReading['meter_type'][] = ['electric', 'water']
@@ -410,6 +412,10 @@ const DOC_LINK_LABELS: Record<DocumentLinkType, string> = {
   wastewater: 'Jätevesijärjestelmä',
   water_test: 'Vesitutkimus',
   insurance: 'Vakuutus',
+  // Ei vielä valittavissa TUI-lomakkeen "Liitä tietueeseen" -valitsimessa (DOC_LINK_TYPES),
+  // mutta tuettu tietomallissa ja CLI/CSV-tuonnissa (issue #20).
+  renovation: 'Remonttihanke',
+  task: 'Tehtävä',
 }
 
 // Avaa tiedosto käyttöjärjestelmän oletussovelluksella (esim. PDF-katseluohjelma).

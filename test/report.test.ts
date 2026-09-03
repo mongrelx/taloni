@@ -417,3 +417,47 @@ test('buildJsonExport includes all tables with seeded data', () => {
     assert.ok(Array.isArray(data[key]), `${key} should be an array`)
   }
 })
+
+test('isImageFile recognizes common image extensions, case-insensitively', () => {
+  assert.equal(report.isImageFile('~/photos/hirsi.JPG'), true)
+  assert.equal(report.isImageFile('~/photos/hirsi.png'), true)
+  assert.equal(report.isImageFile('~/photos/hirsi.webp'), true)
+  assert.equal(report.isImageFile('~/Documents/lainhuuto.pdf'), false)
+  assert.equal(report.isImageFile('~/Documents/noextension'), false)
+})
+
+test('buildGalleryHtml embeds images and links other documents per property', () => {
+  const p = db.getProperties()[0]!
+  db.addDocument({
+    property_id: p.id,
+    doc_type: 'photo',
+    title: 'Kattokuva',
+    file_path: '~/photos/katto.jpg',
+    issued_date: '2026-06-01',
+    notes: '',
+    linked_type: '',
+    linked_id: 0,
+  })
+  const html = report.buildGalleryHtml()
+  assert.ok(html.includes(p.name))
+  assert.ok(html.includes('<img src='))
+  assert.ok(html.includes('Kattokuva'))
+  assert.ok(html.includes('photos/katto.jpg'))
+})
+
+test('buildGalleryHtml escapes HTML in document titles', () => {
+  const p = db.getProperties()[0]!
+  db.addDocument({
+    property_id: p.id,
+    doc_type: 'other',
+    title: '<script>alert(1)</script>',
+    file_path: '~/Documents/x.pdf',
+    issued_date: '',
+    notes: '',
+    linked_type: '',
+    linked_id: 0,
+  })
+  const html = report.buildGalleryHtml()
+  assert.ok(!html.includes('<script>alert(1)</script>'))
+  assert.ok(html.includes('&lt;script&gt;'))
+})
