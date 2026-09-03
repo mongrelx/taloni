@@ -113,7 +113,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [ ] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking
 - [ ] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration
 - [~] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison (osittain: `taloni portfolio [vuosi]` toteutettu — vertailu, käyttöaste, ROI; arvonseuranta ajan yli vielä auki, tarvitsee tietolähdepäätöksen)
-- [ ] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (migration tools)
+- [~] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (osittain: `taloni export-json` ja `taloni import properties|transactions <csv>` toteutettu; muista työkaluista tuonti ja PostgreSQL-migraatio-opas vielä auki)
 - [ ] [#30](https://github.com/mongrelx/taloni/issues/30) — Offline-first & sync support
 - [ ] [#31](https://github.com/mongrelx/taloni/issues/31) — Multi-language support (Swedish, English)
 - [ ] [#32](https://github.com/mongrelx/taloni/issues/32) — REST API for third-party integrations
