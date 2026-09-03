@@ -104,7 +104,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 
 - [ ] [#17](https://github.com/mongrelx/taloni/issues/17) — PostgreSQL support
 - [ ] [#18](https://github.com/mongrelx/taloni/issues/18) — Deployment to Oracle Cloud Infrastructure (OCI)
-- [ ] [#20](https://github.com/mongrelx/taloni/issues/20) — Image attachments & photo documentation
+- [~] [#20](https://github.com/mongrelx/taloni/issues/20) — Image attachments & photo documentation (osittain: `doc_type: 'photo'`, `linked_type: 'renovation'|'task'`, `taloni gallery` HTML-vienti toteutettu; pienoiskuvat ja TUI-kuvagalleria/-linkitysvalitsin vielä auki)
 - [ ] [#21](https://github.com/mongrelx/taloni/issues/21) — Google Maps integration
 - [ ] [#22](https://github.com/mongrelx/taloni/issues/22) — Utility company integrations (water & electricity)
 - [ ] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (companion to TUI)
