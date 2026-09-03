@@ -486,6 +486,31 @@ test('meter readings CRUD round-trip', () => {
   )
 })
 
+test('property valuations CRUD round-trip', () => {
+  const pid = db.getProperties()[0]!.id
+  db.addPropertyValuation({
+    property_id: pid,
+    value: 250000,
+    valuation_date: '2026-01-01',
+    source: 'Oma arvio',
+    notes: '',
+  })
+  const valuations = db.getPropertyValuations(pid)
+  const v = valuations.find((x) => x.value === 250000)
+  assert.ok(v)
+  assert.equal(v?.source, 'Oma arvio')
+
+  db.updatePropertyValuation({ ...v!, value: 260000 })
+  const updated = db.getPropertyValuations(pid).find((x) => x.id === v!.id)
+  assert.equal(updated?.value, 260000)
+
+  db.deleteRow('property_valuations', v!.id)
+  assert.equal(
+    db.getPropertyValuations(pid).some((x) => x.id === v!.id),
+    false,
+  )
+})
+
 test('water tests CRUD round-trip', () => {
   const pid = db.getProperties()[0]!.id
   db.addWaterTest({

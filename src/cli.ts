@@ -12,6 +12,7 @@ import { Command } from 'commander'
 import { render } from 'ink'
 import React from 'react'
 import {
+  addPropertyValuation,
   addTask,
   addTransaction,
   getDbPath,
@@ -236,6 +237,46 @@ program
     const symbol = options.type === 'income' ? '+' : '-'
     console.log(
       `Successfully recorded financial entry for "${propName}": ${options.type.toUpperCase()} ${symbol}${amt} € (${options.desc})`,
+    )
+  })
+
+// Command: add-valuation — kirjaa kiinteistön arvioidun arvon (arvonseuranta ajan yli, issue #28)
+program
+  .command('add-valuation')
+  .description(
+    'Record a property value estimate (for tracking value over time)',
+  )
+  .argument('<property-id>', 'Property ID')
+  .argument('<value>', 'Estimated value in EUR (positive number)')
+  .option(
+    '-s, --source <source>',
+    'Where the estimate comes from (e.g. "Kiinteistönvälittäjän arvio")',
+    'Oma arvio',
+  )
+  .option('-n, --notes <notes>', 'Notes', '')
+  .action((propertyIdStr, valueStr, options) => {
+    const propId = parseInt(propertyIdStr, 10)
+    const value = parseAmount(valueStr)
+    const errors: string[] = []
+    if (Number.isNaN(propId) || !getProperties().some((p) => p.id === propId))
+      errors.push(`Tuntematon property-id: ${propertyIdStr}`)
+    if (value === null) errors.push(`Virheellinen value: ${valueStr}`)
+    if (errors.length > 0) {
+      process.stderr.write(
+        `Virheellinen syöte:\n${errors.map((e) => `  - ${e}`).join('\n')}\n`,
+      )
+      process.exit(1)
+    }
+    addPropertyValuation({
+      property_id: propId,
+      value: value ?? 0,
+      valuation_date: new Date().toISOString().split('T')[0]!,
+      source: options.source,
+      notes: options.notes,
+    })
+    const propName = getProperties().find((p) => p.id === propId)?.name
+    console.log(
+      `Arvo kirjattu kohteelle "${propName}": ${value} € (${options.source})`,
     )
   })
 

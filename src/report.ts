@@ -15,6 +15,7 @@ import {
   getInsurance,
   getMeterReadings,
   getProperties,
+  getPropertyValuations,
   getRenovations,
   getTasks,
   getTools,
@@ -109,6 +110,8 @@ export interface PortfolioRow {
   nights: number // Vuokrausöitä valitulta vuodelta (ei-perutut varaukset)
   occupancyRate: number // Vuokrausöiden osuus vuoden päivistä, %
   roi: number | null // Nettotulos suhteessa menoihin, % (null jos ei menoja)
+  latestValue: number | null // Viimeisin kirjattu arvio (€), null jos ei arvioita
+  valueChangePercent: number | null // Muutos ensimmäisestä viimeisimpään arvioon, % (null jos < 2 arviota)
 }
 
 export interface PortfolioReport {
@@ -129,9 +132,10 @@ function daysInYear(year: number): number {
   )
 }
 
-// Salkkuvertailu: kohteiden vertailu rinnakkain (kulut, tehtävät, käyttöaste, ROI).
-// "Property value tracking over time" -kohta (issue #28) on jätetty pois — kiinteistön
-// arvolle ei ole vielä tietolähdettä/skeemaa, eikä sitä ole tarkemmin määritelty.
+// Salkkuvertailu: kohteiden vertailu rinnakkain (kulut, tehtävät, käyttöaste, ROI, arvonseuranta).
+// Arvonseuranta (issue #28: "Property value tracking over time") perustuu käsin kirjattuihin
+// property_valuations-merkintöihin (sama periaate kuin meter_readings/water_tests) — ei
+// automaattista arvonmääritystä, koska sellaista tietolähdettä ei ole saatavilla.
 export function portfolioReport(year: number): PortfolioReport {
   const props = getProperties()
   const txs = getTransactions().filter((t) => inYear(t.date, year))
@@ -167,6 +171,16 @@ export function portfolioReport(year: number): PortfolioReport {
         return s + Math.max(0, Math.round(ms / 86_400_000))
       }, 0)
 
+    const valuations = getPropertyValuations(p.id)
+    const latestValue =
+      valuations.length > 0 ? valuations[valuations.length - 1]!.value : null
+    const valueChangePercent =
+      valuations.length >= 2 && valuations[0]!.value > 0
+        ? ((valuations[valuations.length - 1]!.value - valuations[0]!.value) /
+            valuations[0]!.value) *
+          100
+        : null
+
     return {
       propertyId: p.id,
       name: p.name,
@@ -179,6 +193,8 @@ export function portfolioReport(year: number): PortfolioReport {
       nights,
       occupancyRate: (nights / yearDays) * 100,
       roi: expense > 0 ? (net / expense) * 100 : null,
+      latestValue,
+      valueChangePercent,
     }
   })
 
@@ -692,6 +708,7 @@ export function buildJsonExport(): Record<string, unknown> {
     documents: getDocuments(),
     meterReadings: getMeterReadings(),
     buildingMaterials: getBuildingMaterials(),
+    propertyValuations: getPropertyValuations(),
   }
 }
 
@@ -828,6 +845,13 @@ export function formatPortfolioReport(r: PortfolioReport): string {
     lines.push(
       `    Tehtäviä avoinna: ${row.openTasks} (${row.overdueTasks} myöhässä) | Käyttöaste: ${row.occupancyRate.toFixed(1)} % (${row.nights} yötä)`,
     )
+    if (row.latestValue !== null) {
+      const changeStr =
+        row.valueChangePercent === null
+          ? ''
+          : ` (${row.valueChangePercent >= 0 ? '+' : ''}${row.valueChangePercent.toFixed(1)} % ensimmäisestä arviosta)`
+      lines.push(`    Arvioitu arvo: ${eur(row.latestValue)}${changeStr}`)
+    }
   }
   lines.push('')
   lines.push(

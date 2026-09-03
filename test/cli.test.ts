@@ -125,6 +125,20 @@ describe('CLI command integration tests', () => {
     assert.ok(res.stderr.includes('Tuntematon renovation-id'))
   })
 
+  it('add-valuation records a property value estimate', () => {
+    const res = runCli(['add-valuation', '1', '250000', '-s', 'Testiarvio'])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('Arvo kirjattu'))
+    const portfolioRes = runCli(['portfolio'])
+    assert.ok(portfolioRes.stdout.includes('Arvioitu arvo'))
+  })
+
+  it('add-valuation rejects an unknown property-id', () => {
+    const res = runCli(['add-valuation', '999999', '250000'])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Tuntematon property-id'))
+  })
+
   it('renovations command prints budget vs actual comparison', () => {
     const res = runCli(['renovations'])
     assert.equal(res.status, 0)

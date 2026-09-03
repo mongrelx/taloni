@@ -272,6 +272,17 @@ export function initDb(): Db {
     );
   `)
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS property_valuations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      value REAL NOT NULL DEFAULT 0,
+      valuation_date TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT ''
+    );
+  `)
+
   runMigrations(db)
 
   // Tarkistetaan tarvitseeko tietokantaan syöttää siemenaineisto

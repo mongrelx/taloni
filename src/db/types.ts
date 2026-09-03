@@ -276,6 +276,18 @@ export interface MeterReading {
   notes: string
 }
 
+// Kiinteistön arvonseuranta ajan yli (issue #28: "Property value tracking over time").
+// Mallinnettu samalla periodisten käsin syötettyjen merkintöjen tavalla kuin meter_readings/
+// water_tests — arvo tulee käyttäjän itsensä kirjaamasta arviosta, ei automaattisesta lähteestä.
+export interface PropertyValuation {
+  id: number
+  property_id: number
+  value: number // Arvioitu markkina-arvo (€)
+  valuation_date: string // Arvion päivämäärä (YYYY-MM-DD)
+  source: string // esim. "Kiinteistönvälittäjän arvio", "Verottajan arvo", "Oma arvio"
+  notes: string
+}
+
 // --- Rakennus- ja pintamateriaalit ---
 
 export type MaterialCategory =
@@ -317,3 +329,4 @@ export type DeletableTable =
   | 'documents'
   | 'meter_readings'
   | 'building_materials'
+  | 'property_valuations'

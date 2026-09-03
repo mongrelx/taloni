@@ -152,6 +152,39 @@ test('portfolioReport counts overdue vs upcoming open tasks correctly', () => {
   assert.equal(after.overdueTasks, before.overdueTasks + 1)
 })
 
+test('portfolioReport tracks property value change from first to latest valuation', () => {
+  const p = db.getProperties().find((x) => x.name === 'Pappila')!
+  const before = report
+    .portfolioReport(2026)
+    .rows.find((r) => r.propertyId === p.id)!
+  assert.equal(before.latestValue, null)
+  assert.equal(before.valueChangePercent, null)
+
+  db.addPropertyValuation({
+    property_id: p.id,
+    value: 200000,
+    valuation_date: '2020-01-01',
+    source: 'Oma arvio',
+    notes: '',
+  })
+  db.addPropertyValuation({
+    property_id: p.id,
+    value: 220000,
+    valuation_date: '2026-01-01',
+    source: 'Oma arvio',
+    notes: '',
+  })
+
+  const after = report
+    .portfolioReport(2026)
+    .rows.find((r) => r.propertyId === p.id)!
+  assert.equal(after.latestValue, 220000)
+  assert.ok(
+    after.valueChangePercent !== null &&
+      Math.abs(after.valueChangePercent - 10) < 1e-9,
+  )
+})
+
 test('renovationBudgetReport flags over-budget projects and sums linked expenses', () => {
   const p = db.getProperties()[0]!
   db.addRenovation({
