@@ -54,7 +54,11 @@ export function initDb(): Db {
       waste_interval TEXT NOT NULL DEFAULT '',
       biowaste TEXT NOT NULL DEFAULT 'collection' CHECK(biowaste IN ('collection', 'home_compost', 'shared', 'none')),
       compost_registered INTEGER NOT NULL DEFAULT 0,
-      compost_reg_date TEXT NOT NULL DEFAULT ''
+      compost_reg_date TEXT NOT NULL DEFAULT '',
+      floor_area REAL NOT NULL DEFAULT 0,
+      energy_rating TEXT NOT NULL DEFAULT '' CHECK(energy_rating IN ('', 'A', 'B', 'C', 'D', 'E', 'F', 'G')),
+      energy_cert_date TEXT NOT NULL DEFAULT '',
+      energy_cert_valid_until TEXT NOT NULL DEFAULT ''
     );
   `)
 

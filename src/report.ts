@@ -2,6 +2,7 @@
 import {
   addProperty,
   addTransaction,
+  assessEnergyEfficiency,
   getBookings,
   getBuildingMaterials,
   getContacts,
@@ -288,6 +289,53 @@ export function renovationBudgetReport(): RenovationBudgetRow[] {
   })
 }
 
+export interface EnergyReportRow {
+  propertyId: number
+  name: string
+  floorArea: number // m², 0 = ei tiedossa
+  energyRating: string // '' = ei energiatodistusta
+  electricConsumptionKwh: number // Vuoden aikana mitattu kulutus (mittarilukemien erotus)
+  kwhPerM2: number | null // null jos pinta-alaa ei tiedetä
+  suggestions: string[]
+}
+
+// Laskee vuoden aikana mitatun sähkönkulutuksen mittarilukemien peräkkäisistä eroista
+// (sama logiikka kuin Dashboard.tsx:n mittarilukemat-välilehden kulutustrendi).
+function yearlyElectricConsumption(propertyId: number, year: number): number {
+  const readings = getMeterReadings(propertyId)
+    .filter((r) => r.meter_type === 'electric')
+    .sort((a, b) => a.reading_date.localeCompare(b.reading_date))
+  let total = 0
+  for (let i = 1; i < readings.length; i++) {
+    if (inYear(readings[i]!.reading_date, year)) {
+      const delta = readings[i]!.reading - readings[i - 1]!.reading
+      if (delta > 0) total += delta
+    }
+  }
+  return total
+}
+
+// Energiatehokkuusraportti: mitattu sähkönkulutus kWh/m²/v (jos pinta-ala tiedossa) sekä
+// informatiiviset parannusehdotukset. "Insulation tracking per building component" on jo
+// katettu building_materials-taulun wall_exterior/wall_interior-kategorioilla (Vaihe-osio),
+// joten sitä ei toisteta tässä erikseen.
+export function energyEfficiencyReport(year: number): EnergyReportRow[] {
+  const heating = getHeatingSystems()
+  return getProperties().map((p) => {
+    const consumption = yearlyElectricConsumption(p.id, year)
+    const propHeating = heating.filter((h) => h.property_id === p.id)
+    return {
+      propertyId: p.id,
+      name: p.name,
+      floorArea: p.floor_area,
+      energyRating: p.energy_rating,
+      electricConsumptionKwh: consumption,
+      kwhPerM2: p.floor_area > 0 ? consumption / p.floor_area : null,
+      suggestions: assessEnergyEfficiency(p, propHeating).suggestions,
+    }
+  })
+}
+
 // --- CSV ---
 
 function csvCell(v: unknown): string {
@@ -415,6 +463,7 @@ export function importPropertiesCsv(csvText: string): ImportResult {
     'shared',
     'none',
   ])
+  const ENERGY_RATINGS = new Set(['', 'A', 'B', 'C', 'D', 'E', 'F', 'G'])
 
   rows.forEach((row, idx) => {
     const lineNo = idx + 2
@@ -450,6 +499,9 @@ export function importPropertiesCsv(csvText: string): ImportResult {
     const biowaste = BIOWASTE_TYPES.has(row.biowaste ?? '')
       ? (row.biowaste as Property['biowaste'])
       : 'collection'
+    const energyRating = ENERGY_RATINGS.has(row.energy_rating ?? '')
+      ? (row.energy_rating as Property['energy_rating'])
+      : ''
 
     addProperty({
       name,
@@ -469,6 +521,10 @@ export function importPropertiesCsv(csvText: string): ImportResult {
       biowaste,
       compost_registered: row.compost_registered === '1' ? 1 : 0,
       compost_reg_date: row.compost_reg_date ?? '',
+      floor_area: parseAmount(row.floor_area ?? '') ?? 0,
+      energy_rating: energyRating,
+      energy_cert_date: row.energy_cert_date ?? '',
+      energy_cert_valid_until: row.energy_cert_valid_until ?? '',
     })
     imported++
   })
@@ -656,5 +712,33 @@ export function formatRenovationBudgetReport(
       lines.push(`    Linkitetyt taloustapahtumat: ${eur(row.linkedExpenses)}`)
     }
   }
+  return lines.join('\n')
+}
+
+export function formatEnergyReport(
+  rows: EnergyReportRow[],
+  year: number,
+): string {
+  const lines: string[] = []
+  lines.push(`=== ENERGIATEHOKKUUS ${year} ===`)
+  lines.push('')
+  for (const row of rows) {
+    const rating = row.energyRating || '—'
+    const perM2 =
+      row.kwhPerM2 === null
+        ? 'ei tiedossa (pinta-ala puuttuu)'
+        : `${row.kwhPerM2.toFixed(1)} kWh/m²/v`
+    lines.push(`  ${row.name} [Energialuokka: ${rating}]`)
+    lines.push(
+      `    Sähkönkulutus ${row.electricConsumptionKwh} kWh | ${perM2} | Pinta-ala: ${row.floorArea || '—'} m²`,
+    )
+    for (const s of row.suggestions) {
+      lines.push(`    💡 ${s}`)
+    }
+  }
+  lines.push('')
+  lines.push(
+    'Huom: parannusehdotukset ovat informatiivisia yleissuosituksia, eivät asiantuntija-arvio.',
+  )
   return lines.join('\n')
 }

@@ -19,6 +19,17 @@ export interface Property {
   biowaste: 'collection' | 'home_compost' | 'shared' | 'none' // kunnan keräys / kotikompostointi / yhteiskeräys / ei biojätettä
   compost_registered: 0 | 1 // Kompostointi-ilmoitus tehty kunnalle
   compost_reg_date: string // Ilmoituksen päiväys (YYYY-MM-DD)
+  // --- Energiatehokkuus ---
+  floor_area: number // Lämmitetty pinta-ala m² (0 = ei tiedossa) — käytetään kulutuksen (kWh/m²/v) laskentaan
+  energy_rating: EnergyRating // Energiatodistuksen luokka ('' = ei todistusta/ei tiedossa)
+  energy_cert_date: string // Energiatodistuksen laadintapäivä (YYYY-MM-DD, tyhjä = ei todistusta)
+  energy_cert_valid_until: string // Energiatodistuksen voimassaolon päättyminen (YYYY-MM-DD)
+}
+
+export type EnergyRating = '' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+
+export interface EnergyAssessment {
+  suggestions: string[] // Informatiivisia parannusehdotuksia (ei asiantuntija-arvio)
 }
 
 export interface CompostAssessment {

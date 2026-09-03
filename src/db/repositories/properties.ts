@@ -1,5 +1,10 @@
 import { initDb } from '../schema.js'
-import type { CompostAssessment, Property } from '../types.js'
+import type {
+  CompostAssessment,
+  EnergyAssessment,
+  HeatingSystem,
+  Property,
+} from '../types.js'
 
 export function getProperties(): Property[] {
   const db = initDb()
@@ -8,7 +13,7 @@ export function getProperties(): Property[] {
 }
 
 const PROP_EXTRA_COLS =
-  'sauna_type, sauna_info, property_tax, road_fee, electricity_fuse, water_connection, waste_provider, waste_bin, waste_interval, biowaste, compost_registered, compost_reg_date'
+  'sauna_type, sauna_info, property_tax, road_fee, electricity_fuse, water_connection, waste_provider, waste_bin, waste_interval, biowaste, compost_registered, compost_reg_date, floor_area, energy_rating, energy_cert_date, energy_cert_valid_until'
 function propExtraValues(prop: Omit<Property, 'id'>): unknown[] {
   return [
     prop.sauna_type ?? 'none',
@@ -23,6 +28,10 @@ function propExtraValues(prop: Omit<Property, 'id'>): unknown[] {
     prop.biowaste ?? 'collection',
     prop.compost_registered ?? 0,
     prop.compost_reg_date ?? '',
+    prop.floor_area ?? 0,
+    prop.energy_rating ?? '',
+    prop.energy_cert_date ?? '',
+    prop.energy_cert_valid_until ?? '',
   ]
 }
 
@@ -83,6 +92,48 @@ export function assessComposting(p: Property): CompostAssessment | null {
     level: 'ok',
     message: `Kompostointi-ilmoitus tehty${p.compost_reg_date ? ` (${p.compost_reg_date})` : ''}.`,
   }
+}
+
+// Informatiivisia energiatehokkuuden parannusehdotuksia rakennusvuoden, lämmitysmuodon
+// ja energiatodistuksen perusteella. HUOM: ei asiantuntija-arvio, vain yleisiä suosituksia.
+export function assessEnergyEfficiency(
+  p: Property,
+  heatingSystems: HeatingSystem[],
+): EnergyAssessment {
+  const suggestions: string[] = []
+
+  if (!p.energy_rating) {
+    suggestions.push(
+      'Energiatodistus puuttuu — vaaditaan usein myynnin/vuokrauksen yhteydessä (laki energiatodistuksesta 50/2013).',
+    )
+  } else if (['E', 'F', 'G'].includes(p.energy_rating)) {
+    suggestions.push(
+      `Energialuokka ${p.energy_rating} — kannattaa harkita energiakatselmusta parannuskohteiden kartoittamiseksi.`,
+    )
+  }
+
+  if (p.build_year > 0 && p.build_year < 1976) {
+    suggestions.push(
+      'Rakennettu ennen vuoden 1976 lämmöneristysvaatimuksia — yläpohjan ja ulkoseinien lisäeristys voi parantaa energiatehokkuutta merkittävästi.',
+    )
+  }
+
+  if (heatingSystems.some((h) => h.type === 'oil')) {
+    suggestions.push(
+      'Öljylämmitys — kannattaa selvittää maalämpöön tai ilma-vesilämpöpumppuun siirtymistä (öljylämmityksestä luopuminen).',
+    )
+  }
+  if (
+    heatingSystems.some((h) => h.type === 'electric') &&
+    p.build_year > 0 &&
+    p.build_year < 1990
+  ) {
+    suggestions.push(
+      'Suora sähkölämmitys vanhemmassa rakennuksessa — ilmalämpöpumppu lisälämmönlähteenä voi pienentää kulutusta.',
+    )
+  }
+
+  return { suggestions }
 }
 
 export function deleteProperty(id: number): void {

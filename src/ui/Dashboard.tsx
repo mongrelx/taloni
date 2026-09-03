@@ -1589,6 +1589,9 @@ export function Dashboard() {
           setNotification('Virhe: Kiinteistötunnus ei voi olla tyhjä!')
           return
         }
+        // Energiatehokkuuden kentät (floor_area, energy_rating, ...) eivät vielä ole TUI-lomakkeella —
+        // säilytetään olemassa oleva arvo muokattaessa, oletusarvot uutta kiinteistöä lisättäessä.
+        const existingProp = properties.find((p) => p.id === editingId)
         const propExtra = {
           sauna_type: formPropSaunaType,
           sauna_info: formPropSaunaInfo,
@@ -1602,6 +1605,10 @@ export function Dashboard() {
           biowaste: formPropBiowaste,
           compost_registered: formPropCompostReg,
           compost_reg_date: formPropCompostDate,
+          floor_area: existingProp?.floor_area ?? 0,
+          energy_rating: existingProp?.energy_rating ?? '',
+          energy_cert_date: existingProp?.energy_cert_date ?? '',
+          energy_cert_valid_until: existingProp?.energy_cert_valid_until ?? '',
         }
         if (editingId === null) {
           addProperty({

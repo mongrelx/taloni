@@ -131,6 +131,19 @@ describe('CLI command integration tests', () => {
     assert.ok(res.stdout.includes('REMONTTIEN BUDJETTI VS. TOTEUTUNUT'))
   })
 
+  it('energy command prints efficiency report with suggestions', () => {
+    const res = runCli(['energy', '2026'])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('ENERGIATEHOKKUUS 2026'))
+    assert.ok(res.stdout.includes('Energiatodistus puuttuu'))
+  })
+
+  it('energy rejects invalid year', () => {
+    const res = runCli(['energy', 'invalid-year'])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Virheellinen vuosi'))
+  })
+
   it('report command generates annual and rental reports', () => {
     const res = runCli(['report', '2026'])
     assert.equal(res.status, 0)

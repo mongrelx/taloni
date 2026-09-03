@@ -185,6 +185,51 @@ test('renovationBudgetReport flags over-budget projects and sums linked expenses
   assert.equal(row.linkedExpenses, 60)
 })
 
+test('energyEfficiencyReport computes kWh/m² from meter readings and floor_area', () => {
+  db.addProperty({
+    name: 'Energiaraportti-testi',
+    kiinteistotunnus: '7-7-7-7',
+    water_source: 'mains',
+    build_year: 1965,
+    location: 'X',
+    sauna_type: 'none',
+    sauna_info: '',
+    property_tax: 0,
+    road_fee: 0,
+    floor_area: 100,
+    energy_rating: '',
+  })
+  const p = db.getProperties().find((x) => x.name === 'Energiaraportti-testi')!
+  db.addMeterReading({
+    property_id: p.id,
+    meter_type: 'electric',
+    reading: 1000,
+    reading_date: '2026-01-01',
+    notes: '',
+  })
+  db.addMeterReading({
+    property_id: p.id,
+    meter_type: 'electric',
+    reading: 1500,
+    reading_date: '2026-12-01',
+    notes: '',
+  })
+
+  const rows = report.energyEfficiencyReport(2026)
+  const row = rows.find((r) => r.propertyId === p.id)!
+  assert.equal(row.electricConsumptionKwh, 500)
+  assert.equal(row.kwhPerM2, 5)
+  assert.ok(row.suggestions.some((s) => s.includes('Energiatodistus puuttuu')))
+  assert.ok(row.suggestions.some((s) => s.includes('1976')))
+})
+
+test('energyEfficiencyReport reports null kwhPerM2 when floor_area is unknown', () => {
+  const rows = report.energyEfficiencyReport(2026)
+  const metsa = rows.find((r) => r.name === 'Metsäpirtti')!
+  assert.equal(metsa.floorArea, 0)
+  assert.equal(metsa.kwhPerM2, null)
+})
+
 test('toCSV escapes commas and quotes', () => {
   const csv = report.toCSV([{ a: 'x,y', b: 'he said "hi"', c: 3 }])
   assert.equal(csv, 'a,b,c\n"x,y","he said ""hi""",3\n')

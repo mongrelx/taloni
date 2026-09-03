@@ -72,4 +72,10 @@ test('old v1 database migrates without data loss', async () => {
   assert.equal(txs.length, 1)
   assert.equal(txs[0]!.description, 'Vanha kulu')
   assert.equal(txs[0]!.renovation_id, null)
+
+  // v9: energiatehokkuuden sarakkeet lisätään oletusarvoilla
+  assert.equal(props[0]!.floor_area, 0)
+  assert.equal(props[0]!.energy_rating, '')
+  assert.equal(props[0]!.energy_cert_date, '')
+  assert.equal(props[0]!.energy_cert_valid_until, '')
 })

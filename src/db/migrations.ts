@@ -148,6 +148,20 @@ export const migrations: ((db: Db) => void)[] = [
       )
     }
   },
+  // v9: Energiatehokkuus — pinta-ala (kulutuksen kWh/m² laskentaan) ja energiatodistuksen tiedot.
+  (db) => {
+    const cols = (
+      db.prepare('PRAGMA table_info(properties)').all() as { name: string }[]
+    ).map((c) => c.name)
+    const add = (name: string, decl: string) => {
+      if (!cols.includes(name))
+        db.exec(`ALTER TABLE properties ADD COLUMN ${name} ${decl}`)
+    }
+    add('floor_area', 'REAL NOT NULL DEFAULT 0')
+    add('energy_rating', "TEXT NOT NULL DEFAULT ''")
+    add('energy_cert_date', "TEXT NOT NULL DEFAULT ''")
+    add('energy_cert_valid_until', "TEXT NOT NULL DEFAULT ''")
+  },
 ]
 
 export function runMigrations(db: Db) {

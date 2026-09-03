@@ -204,6 +204,69 @@ test('property connection & waste fields round-trip', () => {
   assert.equal(p2.compost_reg_date, '2026-05-01')
 })
 
+test('property energy fields (floor_area, energy_rating) round-trip', () => {
+  db.addProperty({
+    name: 'Energiatesti',
+    kiinteistotunnus: '8-8-8-8',
+    water_source: 'mains',
+    build_year: 1965,
+    location: 'X',
+    sauna_type: 'none',
+    sauna_info: '',
+    property_tax: 0,
+    road_fee: 0,
+    floor_area: 120,
+    energy_rating: 'D',
+    energy_cert_date: '2026-01-15',
+    energy_cert_valid_until: '2036-01-15',
+  })
+  const p = db.getProperties().find((x) => x.name === 'Energiatesti')!
+  assert.equal(p.floor_area, 120)
+  assert.equal(p.energy_rating, 'D')
+  db.updateProperty({ ...p, floor_area: 130, energy_rating: 'C' })
+  const p2 = db.getProperties().find((x) => x.id === p.id)!
+  assert.equal(p2.floor_area, 130)
+  assert.equal(p2.energy_rating, 'C')
+})
+
+test('assessEnergyEfficiency suggests improvements for old buildings and oil heating', () => {
+  const base = db.getProperties()[0]!
+  const noSuggestions = db.assessEnergyEfficiency(
+    { ...base, build_year: 2015, energy_rating: 'B' },
+    [],
+  )
+  assert.deepEqual(noSuggestions.suggestions, [])
+
+  const missingCert = db.assessEnergyEfficiency(
+    { ...base, build_year: 2015, energy_rating: '' },
+    [],
+  )
+  assert.ok(
+    missingCert.suggestions.some((s) => s.includes('Energiatodistus puuttuu')),
+  )
+
+  const oldBuilding = db.assessEnergyEfficiency(
+    { ...base, build_year: 1950, energy_rating: 'B' },
+    [],
+  )
+  assert.ok(oldBuilding.suggestions.some((s) => s.includes('1976')))
+
+  const oilHeating = db.assessEnergyEfficiency(
+    { ...base, build_year: 2015, energy_rating: 'B' },
+    [
+      {
+        id: 1,
+        property_id: base.id,
+        type: 'oil',
+        description: '',
+        last_inspection: null,
+        next_inspection: null,
+      },
+    ],
+  )
+  assert.ok(oilHeating.suggestions.some((s) => s.includes('Öljylämmitys')))
+})
+
 test('documents can be linked to a fireplace (nuohoustodistus) and queried', () => {
   const pid = db.getProperties().find((p) => p.name === 'Metsäpirtti')!.id
   const fp = db.getFireplaces(pid)[0]!

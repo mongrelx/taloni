@@ -24,7 +24,9 @@ import {
   annualReport,
   buildCsvExports,
   buildJsonExport,
+  energyEfficiencyReport,
   formatAnnualReport,
+  formatEnergyReport,
   formatPortfolioReport,
   formatRenovationBudgetReport,
   formatRentalReport,
@@ -304,6 +306,20 @@ program
   .description('Print renovation budget-vs-actual comparison')
   .action(() => {
     console.log(formatRenovationBudgetReport(renovationBudgetReport()))
+  })
+
+// Command: energy — energiatehokkuus (kulutus kWh/m², parannusehdotukset)
+program
+  .command('energy')
+  .description('Print energy efficiency report (consumption, suggestions)')
+  .argument('[year]', 'Report year (default: current year)')
+  .action((yearArg) => {
+    const year = yearArg ? parseInt(yearArg, 10) : new Date().getFullYear()
+    if (Number.isNaN(year)) {
+      process.stderr.write(`Virheellinen vuosi: ${yearArg}\n`)
+      process.exit(1)
+    }
+    console.log(formatEnergyReport(energyEfficiencyReport(year), year))
   })
 
 // Command: export — kirjoittaa taulukot CSV-tiedostoiksi
