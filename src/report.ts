@@ -79,6 +79,109 @@ export function annualReport(year: number): AnnualReport {
   }
 }
 
+export interface PortfolioRow {
+  propertyId: number
+  name: string
+  kiinteistotunnus: string
+  income: number // Vuoden tulot
+  expense: number // Vuoden menot
+  net: number
+  openTasks: number // Tehtäviä, joita ei ole merkitty valmiiksi (nykytila)
+  overdueTasks: number // Avoimia tehtäviä, joiden eräpäivä on ohitettu (nykytila)
+  nights: number // Vuokrausöitä valitulta vuodelta (ei-perutut varaukset)
+  occupancyRate: number // Vuokrausöiden osuus vuoden päivistä, %
+  roi: number | null // Nettotulos suhteessa menoihin, % (null jos ei menoja)
+}
+
+export interface PortfolioReport {
+  year: number
+  rows: PortfolioRow[]
+  totals: {
+    income: number
+    expense: number
+    net: number
+    nights: number
+    occupancyRate: number
+  }
+}
+
+function daysInYear(year: number): number {
+  return Math.round(
+    (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)) / 86_400_000,
+  )
+}
+
+// Salkkuvertailu: kohteiden vertailu rinnakkain (kulut, tehtävät, käyttöaste, ROI).
+// "Property value tracking over time" -kohta (issue #28) on jätetty pois — kiinteistön
+// arvolle ei ole vielä tietolähdettä/skeemaa, eikä sitä ole tarkemmin määritelty.
+export function portfolioReport(year: number): PortfolioReport {
+  const props = getProperties()
+  const txs = getTransactions().filter((t) => inYear(t.date, year))
+  const allTasks = getTasks()
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const bookings = getBookings().filter(
+    (b) => inYear(b.start_date, year) && b.status !== 'cancelled',
+  )
+  const yearDays = daysInYear(year)
+
+  const rows: PortfolioRow[] = props.map((p) => {
+    const pTxs = txs.filter((t) => t.property_id === p.id)
+    const income = pTxs
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + t.amount, 0)
+    const expense = pTxs
+      .filter((t) => t.type === 'expense')
+      .reduce((s, t) => s + t.amount, 0)
+    const net = income - expense
+
+    const pTasks = allTasks.filter((t) => t.property_id === p.id)
+    const openTasks = pTasks.filter((t) => t.status !== 'completed').length
+    const overdueTasks = pTasks.filter(
+      (t) => t.status !== 'completed' && t.due_date < todayIso,
+    ).length
+
+    const nights = bookings
+      .filter((b) => b.property_id === p.id)
+      .reduce((s, b) => {
+        const ms =
+          new Date(`${b.end_date}T00:00:00Z`).getTime() -
+          new Date(`${b.start_date}T00:00:00Z`).getTime()
+        return s + Math.max(0, Math.round(ms / 86_400_000))
+      }, 0)
+
+    return {
+      propertyId: p.id,
+      name: p.name,
+      kiinteistotunnus: p.kiinteistotunnus,
+      income,
+      expense,
+      net,
+      openTasks,
+      overdueTasks,
+      nights,
+      occupancyRate: (nights / yearDays) * 100,
+      roi: expense > 0 ? (net / expense) * 100 : null,
+    }
+  })
+
+  const totalIncome = rows.reduce((s, r) => s + r.income, 0)
+  const totalExpense = rows.reduce((s, r) => s + r.expense, 0)
+  const totalNights = rows.reduce((s, r) => s + r.nights, 0)
+
+  return {
+    year,
+    rows,
+    totals: {
+      income: totalIncome,
+      expense: totalExpense,
+      net: totalIncome - totalExpense,
+      nights: totalNights,
+      occupancyRate:
+        rows.length > 0 ? (totalNights / (rows.length * yearDays)) * 100 : 0,
+    },
+  }
+}
+
 export interface RentalReportRow {
   propertyId: number
   name: string
@@ -199,6 +302,31 @@ export function formatAnnualReport(r: AnnualReport): string {
   lines.push('')
   lines.push(
     `YHTEENSÄ  tulot ${eur(r.totalIncome)} | menot ${eur(r.totalExpense)} | NETTOTULOS ${eur(r.net)}`,
+  )
+  return lines.join('\n')
+}
+
+export function formatPortfolioReport(r: PortfolioReport): string {
+  const lines: string[] = []
+  lines.push(`=== SALKKUVERTAILU ${r.year} ===`)
+  lines.push('')
+  if (r.rows.length === 0) {
+    lines.push('Ei kiinteistöjä.')
+    return lines.join('\n')
+  }
+  for (const row of r.rows) {
+    const roiStr = row.roi === null ? '—' : `${row.roi.toFixed(1)} %`
+    lines.push(`  ${row.name} (${row.kiinteistotunnus})`)
+    lines.push(
+      `    Tulot ${eur(row.income).padStart(12)} | Menot ${eur(row.expense).padStart(12)} | Netto ${eur(row.net).padStart(12)} | ROI ${roiStr}`,
+    )
+    lines.push(
+      `    Tehtäviä avoinna: ${row.openTasks} (${row.overdueTasks} myöhässä) | Käyttöaste: ${row.occupancyRate.toFixed(1)} % (${row.nights} yötä)`,
+    )
+  }
+  lines.push('')
+  lines.push(
+    `YHTEENSÄ  tulot ${eur(r.totals.income)} | menot ${eur(r.totals.expense)} | netto ${eur(r.totals.net)} | käyttöaste ${r.totals.occupancyRate.toFixed(1)} % (${r.totals.nights} yötä)`,
   )
   return lines.join('\n')
 }

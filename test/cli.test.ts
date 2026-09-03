@@ -114,6 +114,19 @@ describe('CLI command integration tests', () => {
     assert.ok(res.stderr.includes('Virheellinen vuosi'))
   })
 
+  it('portfolio command prints side-by-side property comparison', () => {
+    const res = runCli(['portfolio', '2026'])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('SALKKUVERTAILU'))
+    assert.ok(res.stdout.includes('Käyttöaste'))
+  })
+
+  it('portfolio rejects invalid year', () => {
+    const res = runCli(['portfolio', 'invalid-year'])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Virheellinen vuosi'))
+  })
+
   it('export command creates CSV files in specified directory', () => {
     const exportDir = join(testHome, 'export-test')
     const res = runCli(['export', exportDir])

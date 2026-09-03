@@ -17,7 +17,9 @@ import {
   annualReport,
   buildCsvExports,
   formatAnnualReport,
+  formatPortfolioReport,
   formatRentalReport,
+  portfolioReport,
   rentalIncomeReport,
 } from './report.js'
 import { Dashboard } from './ui/Dashboard.js'
@@ -249,6 +251,20 @@ program
       console.log('')
     }
     console.log(formatRentalReport(rentalIncomeReport(year)))
+  })
+
+// Command: portfolio — kohteiden salkkuvertailu (kulut, tehtävät, käyttöaste, ROI)
+program
+  .command('portfolio')
+  .description('Print side-by-side property portfolio comparison')
+  .argument('[year]', 'Report year (default: current year)')
+  .action((yearArg) => {
+    const year = yearArg ? parseInt(yearArg, 10) : new Date().getFullYear()
+    if (Number.isNaN(year)) {
+      process.stderr.write(`Virheellinen vuosi: ${yearArg}\n`)
+      process.exit(1)
+    }
+    console.log(formatPortfolioReport(portfolioReport(year)))
   })
 
 // Command: export — kirjoittaa taulukot CSV-tiedostoiksi
