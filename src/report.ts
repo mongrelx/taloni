@@ -7,7 +7,7 @@ import {
   getTransactions,
   getUtilities,
   type Transaction,
-} from './db.js'
+} from './db/index.js'
 
 export interface PropertyYearSummary {
   propertyId: number

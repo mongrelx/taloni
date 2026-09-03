@@ -7,10 +7,10 @@ import { before, test } from 'node:test'
 // Eristetään tietokanta väliaikaishakemistoon ennen db-moduulin latausta.
 process.env.HOME = mkdtempSync(join(tmpdir(), 'taloni-db-'))
 
-let db: typeof import('../src/db.ts')
+let db: typeof import('../src/db/index.ts')
 
 before(async () => {
-  db = await import('../src/db.ts')
+  db = await import('../src/db/index.ts')
   db.initDb()
 })
 

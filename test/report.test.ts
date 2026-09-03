@@ -6,11 +6,11 @@ import { before, test } from 'node:test'
 
 process.env.HOME = mkdtempSync(join(tmpdir(), 'taloni-report-'))
 
-let db: typeof import('../src/db.ts')
+let db: typeof import('../src/db/index.ts')
 let report: typeof import('../src/report.ts')
 
 before(async () => {
-  db = await import('../src/db.ts')
+  db = await import('../src/db/index.ts')
   report = await import('../src/report.ts')
   db.initDb()
 })

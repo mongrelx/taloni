@@ -12,7 +12,7 @@ import {
   getProperties,
   getTasks,
   initDb,
-} from './db.js'
+} from './db/index.js'
 import {
   annualReport,
   buildCsvExports,

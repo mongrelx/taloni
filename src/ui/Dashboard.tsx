@@ -78,7 +78,7 @@ import {
   updateWaterTest,
   type WastewaterSystem,
   type WaterTest,
-} from '../db.js'
+} from '../db/index.js'
 
 type Tab =
   | 'overview'

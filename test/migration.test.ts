@@ -32,7 +32,7 @@ old.exec(`PRAGMA user_version = 1`)
 old.close()
 
 test('old v1 database migrates without data loss', async () => {
-  const db = await import('../src/db.ts')
+  const db = await import('../src/db/index.ts')
   db.initDb()
 
   // Vanha data säilyy
