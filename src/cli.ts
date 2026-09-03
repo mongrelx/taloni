@@ -16,6 +16,7 @@ import {
   addTransaction,
   getDbPath,
   getProperties,
+  getRenovations,
   getTasks,
   initDb,
 } from './db/index.js'
@@ -25,11 +26,13 @@ import {
   buildJsonExport,
   formatAnnualReport,
   formatPortfolioReport,
+  formatRenovationBudgetReport,
   formatRentalReport,
   type ImportResult,
   importPropertiesCsv,
   importTransactionsCsv,
   portfolioReport,
+  renovationBudgetReport,
   rentalIncomeReport,
 } from './report.js'
 import { Dashboard } from './ui/Dashboard.js'
@@ -181,6 +184,10 @@ program
     'Target Property ID (Default: 1 - Metsäpirtti)',
     '1',
   )
+  .option(
+    '-r, --renovation-id <id>',
+    'Link this expense to a renovation project ID',
+  )
   .action((amountStr, options) => {
     const errors = validateTransactionInput({
       amount: amountStr,
@@ -194,6 +201,19 @@ program
     }
     const amt = parseAmount(amountStr) ?? 0
     const propId = parseInt(options.propertyId, 10) || 1
+    let renovationId: number | null = null
+    if (options.renovationId !== undefined) {
+      renovationId = parseInt(options.renovationId, 10)
+      if (
+        Number.isNaN(renovationId) ||
+        !getRenovations().some((r) => r.id === renovationId)
+      ) {
+        process.stderr.write(
+          `Virheellinen syöte:\n  - Tuntematon renovation-id: ${options.renovationId}\n`,
+        )
+        process.exit(1)
+      }
+    }
 
     addTransaction({
       property_id: propId,
@@ -202,6 +222,7 @@ program
       amount: amt,
       date: new Date().toISOString().split('T')[0],
       description: options.desc,
+      renovation_id: renovationId,
     })
 
     const props = getProperties()
@@ -275,6 +296,14 @@ program
       process.exit(1)
     }
     console.log(formatPortfolioReport(portfolioReport(year)))
+  })
+
+// Command: renovations — remonttien budjetti vs. toteutunut -vertailu
+program
+  .command('renovations')
+  .description('Print renovation budget-vs-actual comparison')
+  .action(() => {
+    console.log(formatRenovationBudgetReport(renovationBudgetReport()))
   })
 
 // Command: export — kirjoittaa taulukot CSV-tiedostoiksi

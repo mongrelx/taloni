@@ -28,6 +28,13 @@ old.exec(
 old.exec(
   `INSERT INTO tasks (property_id, title, status, priority, due_date, category, cost) VALUES (1,'Vanha tehtävä','pending','high','2026-06-01','Vesi',50);`,
 )
+// Vanha transactions-taulu (ilman renovation_id-saraketta) v8-migraation testaamiseksi.
+old.exec(
+  `CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, property_id INTEGER NOT NULL, type TEXT NOT NULL, category TEXT NOT NULL, amount REAL NOT NULL, date TEXT NOT NULL, description TEXT NOT NULL);`,
+)
+old.exec(
+  `INSERT INTO transactions (property_id, type, category, amount, date, description) VALUES (1,'expense','Remontti',100,'2026-01-01','Vanha kulu');`,
+)
 old.exec(`PRAGMA user_version = 1`)
 old.close()
 
@@ -59,4 +66,10 @@ test('old v1 database migrates without data loss', async () => {
 
   // Siemenaineistoa EI ajeta olemassa olevaan tietokantaan
   assert.equal(db.getProperties().length, 1)
+
+  // v8: vanha transactions-rivi säilyy, renovation_id lisätään oletusarvolla null
+  const txs = db.getTransactions()
+  assert.equal(txs.length, 1)
+  assert.equal(txs[0]!.description, 'Vanha kulu')
+  assert.equal(txs[0]!.renovation_id, null)
 })

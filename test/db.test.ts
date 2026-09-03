@@ -268,6 +268,41 @@ test('deleting a property cascades to its tasks', () => {
   assert.equal(db.getTasks(p.id).length, 0)
 })
 
+test('transactions can be linked to a renovation and cascade to null on delete', () => {
+  const p = db.getProperties()[0]!
+  db.addRenovation({
+    property_id: p.id,
+    project_name: 'Testiremontti',
+    status: 'in_progress',
+    budget: 1000,
+    spent: 0,
+    start_date: '2026-01-01',
+    end_date: null,
+  })
+  const ren = db
+    .getRenovations(p.id)
+    .find((r) => r.project_name === 'Testiremontti')!
+
+  db.addTransaction({
+    property_id: p.id,
+    type: 'expense',
+    category: 'Remontti',
+    amount: 250,
+    date: '2026-01-15',
+    description: 'Linkitetty kulu',
+    renovation_id: ren.id,
+  })
+  const linked = db.getTransactionsForRenovation(ren.id)
+  assert.equal(linked.length, 1)
+  assert.equal(linked[0]!.amount, 250)
+
+  db.deleteRow('renovations', ren.id)
+  const afterDelete = db
+    .getTransactions(p.id)
+    .find((t) => t.description === 'Linkitetty kulu')!
+  assert.equal(afterDelete.renovation_id, null)
+})
+
 test('advanceRecurrence edge cases: quarterly, leap years, month clamping', () => {
   // quarterly
   assert.equal(db.advanceRecurrence('2026-01-15', 'quarterly'), '2026-04-15')

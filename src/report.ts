@@ -248,6 +248,46 @@ export function rentalIncomeReport(year: number): RentalReport {
   return { year, rows, total: rows.reduce((s, r) => s + r.rentalIncome, 0) }
 }
 
+export interface RenovationBudgetRow {
+  renovationId: number
+  projectName: string
+  propertyName: string
+  status: 'planning' | 'in_progress' | 'completed'
+  budget: number
+  spent: number // Käsin syötetty toteutunut kustannus (renovations.spent)
+  linkedExpenses: number // Linkitettyjen taloustapahtumien summa (transactions.renovation_id)
+  variance: number // budget - spent (negatiivinen = ylitys)
+  overBudget: boolean
+}
+
+// Budjetti vs. toteutunut -vertailu remonttiprojekteittain. `spent` on käsin syötetty
+// kokonaiskustannus; `linkedExpenses` on ristiintarkistus transactions.renovation_id-
+// linkityksen kautta kirjatuista kuluista (issue #25: "Link expenses to specific
+// renovation projects"). "Cost estimates per material + labor" ja "Historical cost
+// data" on jätetty pois — vaativat oman skeeman, eikä niitä ole tarkemmin määritelty.
+export function renovationBudgetReport(): RenovationBudgetRow[] {
+  const props = getProperties()
+  const txs = getTransactions()
+  return getRenovations().map((r) => {
+    const linkedExpenses = txs
+      .filter((t) => t.renovation_id === r.id && t.type === 'expense')
+      .reduce((s, t) => s + t.amount, 0)
+    return {
+      renovationId: r.id,
+      projectName: r.project_name,
+      propertyName:
+        props.find((p) => p.id === r.property_id)?.name ||
+        `Kohde #${r.property_id}`,
+      status: r.status,
+      budget: r.budget,
+      spent: r.spent,
+      linkedExpenses,
+      variance: r.budget - r.spent,
+      overBudget: r.spent > r.budget,
+    }
+  })
+}
+
 // --- CSV ---
 
 function csvCell(v: unknown): string {
@@ -436,10 +476,12 @@ export function importPropertiesCsv(csvText: string): ImportResult {
   return { imported, errors }
 }
 
-// Tuo taloustapahtumia CSV:stä (sarakkeet: property_id, type, category, amount, date, description).
+// Tuo taloustapahtumia CSV:stä (sarakkeet: property_id, type, category, amount, date, description,
+// valinnainen renovation_id remonttiprojektiin linkitystä varten).
 export function importTransactionsCsv(csvText: string): ImportResult {
   const rows = fromCSV(csvText)
   const validPropertyIds = new Set(getProperties().map((p) => p.id))
+  const validRenovationIds = new Set(getRenovations().map((r) => r.id))
   const errors: string[] = []
   let imported = 0
 
@@ -468,6 +510,18 @@ export function importTransactionsCsv(csvText: string): ImportResult {
       errors.push(`Rivi ${lineNo}: virheellinen date (${row.date})`)
       return
     }
+    const renovationIdRaw = (row.renovation_id ?? '').trim()
+    let renovationId: number | null = null
+    if (renovationIdRaw) {
+      const parsed = Number(renovationIdRaw)
+      if (!Number.isFinite(parsed) || !validRenovationIds.has(parsed)) {
+        errors.push(
+          `Rivi ${lineNo}: tuntematon renovation_id (${renovationIdRaw})`,
+        )
+        return
+      }
+      renovationId = parsed
+    }
 
     addTransaction({
       property_id: propertyId,
@@ -476,6 +530,7 @@ export function importTransactionsCsv(csvText: string): ImportResult {
       amount,
       date,
       description: row.description ?? '',
+      renovation_id: renovationId,
     })
     imported++
   })
@@ -575,6 +630,31 @@ export function formatRentalReport(r: RentalReport): string {
     }
     lines.push('')
     lines.push(`VUOKRATULOT YHTEENSÄ: ${eur(r.total)}`)
+  }
+  return lines.join('\n')
+}
+
+export function formatRenovationBudgetReport(
+  rows: RenovationBudgetRow[],
+): string {
+  const lines: string[] = []
+  lines.push('=== REMONTTIEN BUDJETTI VS. TOTEUTUNUT ===')
+  lines.push('')
+  if (rows.length === 0) {
+    lines.push('Ei remonttiprojekteja.')
+    return lines.join('\n')
+  }
+  for (const row of rows) {
+    const flag = row.overBudget ? ' ⚠ YLITYS' : ''
+    lines.push(
+      `  ${row.projectName} (${row.propertyName}) [${row.status}]${flag}`,
+    )
+    lines.push(
+      `    Budjetti ${eur(row.budget).padStart(12)} | Toteutunut ${eur(row.spent).padStart(12)} | Erotus ${eur(row.variance).padStart(12)}`,
+    )
+    if (row.linkedExpenses > 0) {
+      lines.push(`    Linkitetyt taloustapahtumat: ${eur(row.linkedExpenses)}`)
+    }
   }
   return lines.join('\n')
 }

@@ -100,6 +100,37 @@ describe('CLI command integration tests', () => {
     assert.ok(res.stderr.includes('Virheellinen syöte'))
   })
 
+  it('add-tx links an expense to a renovation project', () => {
+    const res = runCli([
+      'add-tx',
+      '60',
+      '-t',
+      'expense',
+      '-c',
+      'Remontti',
+      '-i',
+      '1',
+      '-r',
+      '1',
+    ])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('Successfully recorded financial entry'))
+    const renRes = runCli(['renovations'])
+    assert.ok(renRes.stdout.includes('Linkitetyt taloustapahtumat'))
+  })
+
+  it('add-tx rejects an unknown renovation-id', () => {
+    const res = runCli(['add-tx', '60', '-t', 'expense', '-r', '999999'])
+    assert.notEqual(res.status, 0)
+    assert.ok(res.stderr.includes('Tuntematon renovation-id'))
+  })
+
+  it('renovations command prints budget vs actual comparison', () => {
+    const res = runCli(['renovations'])
+    assert.equal(res.status, 0)
+    assert.ok(res.stdout.includes('REMONTTIEN BUDJETTI VS. TOTEUTUNUT'))
+  })
+
   it('report command generates annual and rental reports', () => {
     const res = runCli(['report', '2026'])
     assert.equal(res.status, 0)

@@ -134,6 +134,20 @@ export const migrations: ((db: Db) => void)[] = [
     db.exec('DROP TABLE fireplaces_old')
     db.exec('PRAGMA foreign_keys = ON')
   },
+  // v8: Remontin kulujen linkitys — transactions.renovation_id, jotta taloustapahtuma
+  // voidaan yhdistää tiettyyn remonttiprojektiin (budjetti vs. toteutunut -vertailu).
+  (db) => {
+    const cols = (
+      db.prepare('PRAGMA table_info(transactions)').all() as {
+        name: string
+      }[]
+    ).map((c) => c.name)
+    if (!cols.includes('renovation_id')) {
+      db.exec(
+        'ALTER TABLE transactions ADD COLUMN renovation_id INTEGER REFERENCES renovations(id) ON DELETE SET NULL',
+      )
+    }
+  },
 ]
 
 export function runMigrations(db: Db) {

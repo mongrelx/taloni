@@ -94,7 +94,8 @@ export function initDb(): Db {
       category TEXT NOT NULL,
       amount REAL NOT NULL,
       date TEXT NOT NULL,
-      description TEXT NOT NULL
+      description TEXT NOT NULL,
+      renovation_id INTEGER REFERENCES renovations(id) ON DELETE SET NULL
     );
   `)
 

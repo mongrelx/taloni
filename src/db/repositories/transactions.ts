@@ -14,8 +14,8 @@ export function getTransactions(propertyId?: number): Transaction[] {
 export function addTransaction(tx: Omit<Transaction, 'id'>): void {
   const db = initDb()
   const stmt = db.prepare(`
-    INSERT INTO transactions (property_id, type, category, amount, date, description)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO transactions (property_id, type, category, amount, date, description, renovation_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `)
   stmt.run(
     tx.property_id,
@@ -24,6 +24,7 @@ export function addTransaction(tx: Omit<Transaction, 'id'>): void {
     tx.amount,
     tx.date,
     tx.description,
+    tx.renovation_id ?? null,
   )
 }
 
@@ -31,7 +32,7 @@ export function updateTransaction(tx: Transaction): void {
   const db = initDb()
   const stmt = db.prepare(`
     UPDATE transactions
-    SET property_id = ?, type = ?, category = ?, amount = ?, description = ?
+    SET property_id = ?, type = ?, category = ?, amount = ?, description = ?, renovation_id = ?
     WHERE id = ?
   `)
   stmt.run(
@@ -40,6 +41,19 @@ export function updateTransaction(tx: Transaction): void {
     tx.category,
     tx.amount,
     tx.description,
+    tx.renovation_id ?? null,
     tx.id,
   )
+}
+
+// Palauttaa remonttiprojektiin linkitetyt taloustapahtumat (toteutuneiden kulujen tarkistus).
+export function getTransactionsForRenovation(
+  renovationId: number,
+): Transaction[] {
+  const db = initDb()
+  return db
+    .prepare(
+      'SELECT * FROM transactions WHERE renovation_id = ? ORDER BY date DESC',
+    )
+    .all(renovationId) as Transaction[]
 }

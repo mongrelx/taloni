@@ -67,6 +67,7 @@ export interface Transaction {
   amount: number
   date: string
   description: string
+  renovation_id: number | null // Linkitetty remonttiprojekti (budjetti vs. toteutunut), null = ei linkitystä
 }
 
 export interface Utility {

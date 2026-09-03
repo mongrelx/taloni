@@ -1501,6 +1501,7 @@ export function Dashboard() {
         amount: b.price,
         date: b.start_date,
         description: `Vuokratulo: ${b.guest_name} (${b.start_date}–${b.end_date})`,
+        renovation_id: null,
       })
       updateBooking({ ...b, income_recorded: 1 })
       setNotification(
@@ -1794,19 +1795,20 @@ export function Dashboard() {
             amount: amountNum,
             date: new Date().toISOString().split('T')[0],
             description: formTxDesc,
+            renovation_id: null,
           })
           setNotification('Uusi tapahtuma tallennettu!')
         } else {
+          const existing = transactions.find((t) => t.id === editingId)
           updateTransaction({
             id: editingId,
             property_id: formPropId,
             type: formTxType,
             category: formCategory || 'Yleinen',
             amount: amountNum,
-            date:
-              transactions.find((t) => t.id === editingId)?.date ||
-              new Date().toISOString().split('T')[0],
+            date: existing?.date || new Date().toISOString().split('T')[0],
             description: formTxDesc,
+            renovation_id: existing?.renovation_id ?? null,
           })
           setNotification('Tapahtuma päivitetty!')
         }

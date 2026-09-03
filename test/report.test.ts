@@ -152,6 +152,39 @@ test('portfolioReport counts overdue vs upcoming open tasks correctly', () => {
   assert.equal(after.overdueTasks, before.overdueTasks + 1)
 })
 
+test('renovationBudgetReport flags over-budget projects and sums linked expenses', () => {
+  const p = db.getProperties()[0]!
+  db.addRenovation({
+    property_id: p.id,
+    project_name: 'Budjettitesti',
+    status: 'in_progress',
+    budget: 100,
+    spent: 150,
+    start_date: '2026-01-01',
+    end_date: null,
+  })
+  const ren = db
+    .getRenovations(p.id)
+    .find((r) => r.project_name === 'Budjettitesti')!
+  db.addTransaction({
+    property_id: p.id,
+    type: 'expense',
+    category: 'Remontti',
+    amount: 60,
+    date: '2026-01-10',
+    description: 'Linkitetty remonttikulu',
+    renovation_id: ren.id,
+  })
+
+  const rows = report.renovationBudgetReport()
+  const row = rows.find((r) => r.renovationId === ren.id)!
+  assert.equal(row.budget, 100)
+  assert.equal(row.spent, 150)
+  assert.equal(row.variance, -50)
+  assert.equal(row.overBudget, true)
+  assert.equal(row.linkedExpenses, 60)
+})
+
 test('toCSV escapes commas and quotes', () => {
   const csv = report.toCSV([{ a: 'x,y', b: 'he said "hi"', c: 3 }])
   assert.equal(csv, 'a,b,c\n"x,y","he said ""hi""",3\n')
