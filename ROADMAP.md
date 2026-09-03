@@ -94,3 +94,32 @@ Suurin domain-hyöty: Suomessa lakisääteiset velvoitteet, joita ei tällä het
 Projekti on nyt kattava suomalaisten hirsitalojen ja mökkien hallintaan: kiinteistöt, tehtävät
 (toistuvat mukaan lukien), talous, kulutus, vakuutukset, lakisääteinen määräaikaishuolto, polttopuu,
 sauna, vuokraus & vuodenkierto, yhteystiedot, asiakirjat, mittarilukemat sekä raportointi ja varmuuskopiointi.
+
+---
+
+## Backlog — avoimet GitHub-issuet
+
+Kaikki alla olevat ovat avoimia GitHub-issueita (mongrelx/taloni), ei vielä aikataulutettu.
+Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla.
+
+- [ ] [#17](https://github.com/mongrelx/taloni/issues/17) — PostgreSQL support
+- [ ] [#18](https://github.com/mongrelx/taloni/issues/18) — Deployment to Oracle Cloud Infrastructure (OCI)
+- [ ] [#20](https://github.com/mongrelx/taloni/issues/20) — Image attachments & photo documentation
+- [ ] [#21](https://github.com/mongrelx/taloni/issues/21) — Google Maps integration
+- [ ] [#22](https://github.com/mongrelx/taloni/issues/22) — Utility company integrations (water & electricity)
+- [ ] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (companion to TUI)
+- [ ] [#24](https://github.com/mongrelx/taloni/issues/24) — Notification system (reminders & alerts)
+- [ ] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking
+- [ ] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking
+- [ ] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration
+- [ ] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison
+- [ ] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (migration tools)
+- [ ] [#30](https://github.com/mongrelx/taloni/issues/30) — Offline-first & sync support
+- [ ] [#31](https://github.com/mongrelx/taloni/issues/31) — Multi-language support (Swedish, English)
+- [ ] [#32](https://github.com/mongrelx/taloni/issues/32) — REST API for third-party integrations
+- [ ] [#33](https://github.com/mongrelx/taloni/issues/33) — Cloud backup & disaster recovery
+- [ ] [#42](https://github.com/mongrelx/taloni/issues/42) — Omarchy plugin/UI integration (someday/maybe — native Omarchy companion UI, not scoped yet)
+
+### Ylläpito (valmiit)
+
+- [x] [#41](https://github.com/mongrelx/taloni/issues/41) — Refactor: split `db.ts` into `src/db/` domain modules (types, schema, migrations, seed, repositories/*)
