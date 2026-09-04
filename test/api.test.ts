@@ -198,9 +198,63 @@ test('GET /api/reports/energy returns per-property efficiency rows', async () =>
   assert.ok(body.some((r: { name: string }) => r.name === 'Metsäpirtti'))
 })
 
+test('GET /api/reports/wastewater returns systems with a compliance assessment', async () => {
+  const res = await authedFetch('/api/reports/wastewater')
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.ok(Array.isArray(body))
+  assert.ok(body.length > 0)
+  assert.ok('assessment' in body[0])
+  assert.ok(['ok', 'warning', 'action'].includes(body[0].assessment.level))
+})
+
 test('an unknown report name returns 404', async () => {
   const res = await authedFetch('/api/reports/bogus')
   assert.equal(res.status, 404)
+})
+
+test('POST /api/fireplaces/bulk-sweep logs a sweep for all fireplaces on a property except excluded ones', async () => {
+  const props = await (await authedFetch('/api/properties')).json()
+  const propertyId = props[0].id
+
+  const created = await Promise.all(
+    [1, 2].map(async (n) => {
+      const res = await authedFetch('/api/fireplaces', {
+        method: 'POST',
+        body: JSON.stringify({
+          property_id: propertyId,
+          type: 'fireplace',
+          name: `Bulk-sweep-testi ${n}`,
+          last_sweep: null,
+          next_sweep: null,
+          sweeper: '',
+        }),
+      })
+      return res.json()
+    }),
+  )
+
+  const res = await authedFetch('/api/fireplaces/bulk-sweep', {
+    method: 'POST',
+    body: JSON.stringify({
+      property_id: propertyId,
+      date: '2026-01-15',
+      excluded_ids: [created[1].id],
+    }),
+  })
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.ok(body.done >= 1)
+  assert.equal(body.excluded, 1)
+
+  const fireplaces = await (await authedFetch('/api/fireplaces')).json()
+  const swept = fireplaces.find((f: { id: number }) => f.id === created[0].id)
+  const excluded = fireplaces.find(
+    (f: { id: number }) => f.id === created[1].id,
+  )
+  assert.equal(swept.last_sweep, '2026-01-15')
+  assert.equal(swept.next_sweep, '2027-01-15')
+  assert.equal(excluded.last_sweep, null)
 })
 
 test('report endpoints require auth like everything else under /api', async () => {

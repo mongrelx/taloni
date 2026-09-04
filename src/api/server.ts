@@ -188,9 +188,29 @@ export function createApiServer(opts: ServerOptions) {
           sendJson(res, 200, energyEfficiencyReport(year))
           return
         }
+        // Jätevesijärjestelmien vaatimustenmukaisuusarvio (VNa 157/2017) — sama assessWastewater()
+        // jota TUI käyttää, ei uudelleentoteutettu selaimessa. Valinnainen ?property_id= rajaa.
+        if (report === 'wastewater') {
+          const propertyId = url.searchParams.has('property_id')
+            ? Number(url.searchParams.get('property_id'))
+            : undefined
+          const systems = db.getWastewaterSystems(propertyId)
+          sendJson(
+            res,
+            200,
+            systems.map((w) => ({ ...w, assessment: db.assessWastewater(w) })),
+          )
+          return
+        }
         sendJson(res, 404, {
           error: `Tuntematon raportti: ${report ?? ''}`,
-          available: ['portfolio', 'alerts', 'renovations', 'energy'],
+          available: [
+            'portfolio',
+            'alerts',
+            'renovations',
+            'energy',
+            'wastewater',
+          ],
         })
         return
       }
@@ -225,6 +245,41 @@ export function createApiServer(opts: ServerOptions) {
         }
         db.updateTaskStatus(id, body.status)
         sendJson(res, 200, db.getTasks().find((t) => t.id === id) ?? null)
+        return
+      }
+
+      // POST /api/fireplaces/bulk-sweep — kertanuohous koko kiinteistölle (ei geneerinen CRUD).
+      // Sama advanceRecurrence('yearly')-logiikka jota TUI käyttää, ei uudelleentoteutettu selaimessa.
+      if (
+        req.method === 'POST' &&
+        segments.length === 3 &&
+        segments[1] === 'fireplaces' &&
+        segments[2] === 'bulk-sweep'
+      ) {
+        const body = (await readJsonBody(req)) as {
+          property_id?: number
+          date?: string
+          excluded_ids?: number[]
+        }
+        if (!Number.isInteger(body.property_id) || !body.date) {
+          sendJson(res, 400, {
+            error: 'property_id (number) ja date (YYYY-MM-DD) vaaditaan',
+          })
+          return
+        }
+        const excluded = new Set(body.excluded_ids ?? [])
+        const nextSweep = db.advanceRecurrence(body.date, 'yearly')
+        let done = 0
+        for (const f of db.getFireplaces(body.property_id)) {
+          if (excluded.has(f.id)) continue
+          db.updateFireplace({
+            ...f,
+            last_sweep: body.date,
+            next_sweep: nextSweep,
+          })
+          done++
+        }
+        sendJson(res, 200, { done, excluded: excluded.size })
         return
       }
 

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { clearApiKey, getApiKey } from './api'
 import AlertsTab from './components/AlertsTab.vue'
+import ComplianceTab from './components/ComplianceTab.vue'
 import FinanceTab from './components/FinanceTab.vue'
 import InsuranceTab from './components/InsuranceTab.vue'
 import LoginScreen from './components/LoginScreen.vue'
@@ -16,6 +17,7 @@ type Tab =
   | 'finance'
   | 'utilities'
   | 'insurance'
+  | 'compliance'
   | 'alerts'
   | 'portfolio'
 
@@ -28,6 +30,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'finance', label: '💰 Talous & Korjaukset' },
   { id: 'utilities', label: '🔌 Sähkö & Kulutus' },
   { id: 'insurance', label: '🛡 Vakuutus & Kalusto' },
+  { id: 'compliance', label: '🔧 Määräaikaishuolto' },
   { id: 'alerts', label: '⏰ Hälytykset' },
   { id: 'portfolio', label: '📊 Salkku' },
 ]
@@ -64,6 +67,7 @@ function logout() {
       <FinanceTab v-else-if="tab === 'finance'" />
       <UtilitiesTab v-else-if="tab === 'utilities'" />
       <InsuranceTab v-else-if="tab === 'insurance'" />
+      <ComplianceTab v-else-if="tab === 'compliance'" />
       <AlertsTab v-else-if="tab === 'alerts'" />
       <PortfolioTab v-else-if="tab === 'portfolio'" />
     </main>

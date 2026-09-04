@@ -166,6 +166,84 @@ export interface Insurance {
   coverage_details: string
 }
 
+export interface Fireplace {
+  id: number
+  property_id: number
+  type:
+    | 'bakery_oven'
+    | 'fireplace'
+    | 'sauna_stove'
+    | 'masonry_heater'
+    | 'chimney'
+    | 'kamina'
+    | 'water_boiler'
+    | 'wood_stove'
+  name: string
+  last_sweep: string | null
+  next_sweep: string | null
+  sweeper: string
+}
+
+export interface WastewaterSystem {
+  id: number
+  property_id: number
+  type:
+    | 'septic_tank'
+    | 'sealed_tank'
+    | 'soil_filter'
+    | 'small_treatment'
+    | 'mains_sewer'
+  permit_info: string
+  last_emptied: string | null
+  next_emptied: string | null
+  emptying_provider: string
+  build_year: number
+  shoreline: 0 | 1
+  groundwater: 0 | 1
+  has_wc: 0 | 1
+  exemption: 0 | 1
+}
+
+export interface WastewaterAssessment {
+  level: 'ok' | 'warning' | 'action'
+  headline: string
+  issues: string[]
+  actions: string[]
+}
+
+export type WastewaterSystemWithAssessment = WastewaterSystem & {
+  assessment: WastewaterAssessment
+}
+
+export interface HeatingSystem {
+  id: number
+  property_id: number
+  type:
+    | 'wood'
+    | 'oil'
+    | 'geothermal'
+    | 'air_heat_pump'
+    | 'electric'
+    | 'district'
+  description: string
+  last_inspection: string | null
+  next_inspection: string | null
+}
+
+export interface WaterTest {
+  id: number
+  property_id: number
+  test_date: string
+  ecoli: string
+  coliforms: string
+  nitrate: string
+  ph: string
+  iron: string
+  fluoride: string
+  passed: 0 | 1
+  notes: string
+}
+
 export interface AlertRow {
   date: string
   daysUntil: number
