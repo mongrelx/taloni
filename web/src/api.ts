@@ -131,6 +131,23 @@ export interface RenovationBudgetRow {
   overBudget: boolean
 }
 
+export interface Utility {
+  id: number
+  property_id: number
+  type:
+    | 'electric_siirto'
+    | 'electric_energia'
+    | 'water'
+    | 'gas'
+    | 'internet'
+    | 'waste'
+  amount: number
+  billing_date: string
+  billing_month: string
+  usage_value: number
+  provider: string
+}
+
 export interface AlertRow {
   date: string
   daysUntil: number
