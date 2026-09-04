@@ -1,0 +1,42 @@
+# Tuotantoajo taloni-REST-API:lle (issue #18/#32). Katso DEPLOYMENT.md.
+#
+# Ilman TLS:ää / suoraan porttiin 3000:
+#   docker compose up -d taloni
+#
+# Caddyn kautta (automaattinen Let's Encrypt-TLS, jos DOMAIN on oikea verkkotunnus):
+#   DOMAIN=esimerkki.fi TALONI_API_KEY=... docker compose --profile proxy up -d
+
+services:
+  taloni:
+    build: .
+    image: ghcr.io/mongrelx/taloni:latest
+    restart: unless-stopped
+    environment:
+      TALONI_API_KEY: ${TALONI_API_KEY:?Aseta TALONI_API_KEY (esim. .env-tiedostossa)}
+      TALONI_API_HOST: 0.0.0.0
+      TALONI_API_PORT: 3000
+    volumes:
+      - taloni-data:/home/node/.taloni
+    ports:
+      - '3000:3000'
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: ['proxy']
+    depends_on:
+      - taloni
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  taloni-data:
+  caddy-data:
+  caddy-config:

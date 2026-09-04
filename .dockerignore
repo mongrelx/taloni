@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.github
+test
+*.md
+!README.md
+taloni-export
+taloni-export.json
+taloni-gallery.html

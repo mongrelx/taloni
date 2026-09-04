@@ -518,4 +518,38 @@ program
     console.log(`Varmuuskopio luotu: ${dest}`)
   })
 
+// Command: serve — REST-rajapinta (issue #32). Yksi API-avain suojaa kaikkia reittejä paitsi
+// /health. Ei ole tarkoitettu käytettäväksi ilman että TALONI_API_KEY on asetettu tuotannossa
+// (Docker/OCI) — paikallisessa käytössä avain generoituu ja tallentuu automaattisesti.
+program
+  .command('serve')
+  .description('Start the REST API server')
+  .option(
+    '-p, --port <port>',
+    'Port to listen on',
+    process.env.TALONI_API_PORT ?? '3000',
+  )
+  .option(
+    '-H, --host <host>',
+    'Host/interface to bind to',
+    process.env.TALONI_API_HOST ?? '0.0.0.0',
+  )
+  .action(async (options) => {
+    const port = parseInt(options.port, 10)
+    if (Number.isNaN(port)) {
+      process.stderr.write(`Virheellinen syöte:\n  - port: ${options.port}\n`)
+      process.exit(1)
+    }
+    const { createApiServer } = await import('./api/server.js')
+    const apiServer = createApiServer({ host: options.host, port })
+    await apiServer.listen()
+    console.log(
+      `taloni API kuuntelee osoitteessa http://${options.host}:${port}`,
+    )
+    console.log('Terveystarkastus (ei vaadi avainta): GET /health')
+    console.log(
+      'Kaikki muut reitit vaativat otsikon: Authorization: Bearer <API-avain>',
+    )
+  })
+
 program.parseAsync(process.argv)

@@ -1,0 +1,80 @@
+# Builds the taloni API image, pushes it to GHCR, then deploys it to an OCI compute instance
+# over SSH (docker compose pull && up). Inert until the required secrets exist — see below.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   OCI_HOST          — the compute instance's public IP or hostname
+#   OCI_SSH_USER       — SSH username (e.g. "ubuntu" or "opc")
+#   OCI_SSH_KEY        — SSH private key (PEM) matching a public key authorized on the instance
+#   TALONI_API_KEY     — the API key the deployed server should require (Authorization: Bearer)
+#
+# Optional secrets:
+#   OCI_DEPLOY_PATH    — remote directory to deploy into (default: /opt/taloni)
+#   OCI_DOMAIN         — if set, deploys behind Caddy with automatic Let's Encrypt TLS on 443
+#
+# The instance needs Docker + the Docker Compose plugin installed and the deploy user in the
+# `docker` group. See DEPLOYMENT.md for the one-time server setup.
+
+name: Deploy to OCI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Ei tee mitään ennen kuin pakolliset secretit on asetettu — turvallinen oletustila.
+    if: ${{ secrets.OCI_HOST != '' && secrets.OCI_SSH_USER != '' && secrets.OCI_SSH_KEY != '' && secrets.TALONI_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/taloni:latest \
+            -t ghcr.io/${{ github.repository_owner }}/taloni:${{ github.sha }} \
+            .
+
+      - name: Push image to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push ghcr.io/${{ github.repository_owner }}/taloni:latest
+          docker push ghcr.io/${{ github.repository_owner }}/taloni:${{ github.sha }}
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.OCI_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.OCI_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Copy deployment files
+        env:
+          DEPLOY_PATH: ${{ secrets.OCI_DEPLOY_PATH != '' && secrets.OCI_DEPLOY_PATH || '/opt/taloni' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" "mkdir -p $DEPLOY_PATH"
+          scp -i ~/.ssh/deploy_key docker-compose.yml Caddyfile \
+            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:$DEPLOY_PATH/"
+          ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" \
+            "cat > $DEPLOY_PATH/.env" <<EOF
+          TALONI_API_KEY=${{ secrets.TALONI_API_KEY }}
+          DOMAIN=${{ secrets.OCI_DOMAIN }}
+          EOF
+
+      - name: Deploy
+        env:
+          DEPLOY_PATH: ${{ secrets.OCI_DEPLOY_PATH != '' && secrets.OCI_DEPLOY_PATH || '/opt/taloni' }}
+          PROFILE_FLAG: ${{ secrets.OCI_DOMAIN != '' && '--profile proxy' || '' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" "
+            set -e
+            cd $DEPLOY_PATH
+            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+            docker compose pull taloni
+            docker compose $PROFILE_FLAG up -d
+          "
