@@ -30,6 +30,16 @@ name: Deploy to OCI
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'Caddyfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsup.config.ts'
+      - '.github/workflows/deploy-oci.yml'
   workflow_dispatch:
 
 permissions:
