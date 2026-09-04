@@ -1,10 +1,11 @@
 # Tuotantoajo taloni-REST-API:lle (issue #18/#32). Katso DEPLOYMENT.md.
 #
-# Ilman TLS:ää / suoraan porttiin 3000:
-#   docker compose up -d taloni
-#
-# Caddyn kautta (automaattinen Let's Encrypt-TLS, jos DOMAIN on oikea verkkotunnus):
+# Caddyn kautta (automaattinen Let's Encrypt-TLS, kun DOMAIN on oikea verkkotunnus — myös
+# sslip.io-osoite kelpaa, esim. "203-0-113-1.sslip.io" ilman omaa domainia):
 #   DOMAIN=esimerkki.fi TALONI_API_KEY=... docker compose --profile proxy up -d
+#
+# Ilman TLS:ää / suoraan porttiin 3000 (kehitys/testaus — HUOM: API-avain kulkee salaamattomana):
+#   ota "ports: - '3000:3000'" alta käyttöön ja aja: docker compose up -d taloni
 
 services:
   taloni:
@@ -17,8 +18,7 @@ services:
       TALONI_API_PORT: 3000
     volumes:
       - taloni-data:/home/node/.taloni
-    ports:
-      - '3000:3000'
+    # - '3000:3000'  # avaa vain jos et käytä Caddy/TLS-profiilia (ks. yllä)
 
   caddy:
     image: caddy:2-alpine
