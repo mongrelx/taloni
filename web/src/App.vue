@@ -9,6 +9,7 @@ import InsuranceTab from './components/InsuranceTab.vue'
 import LoginScreen from './components/LoginScreen.vue'
 import PortfolioTab from './components/PortfolioTab.vue'
 import PropertiesTab from './components/PropertiesTab.vue'
+import RentalTab from './components/RentalTab.vue'
 import TasksTab from './components/TasksTab.vue'
 import UtilitiesTab from './components/UtilitiesTab.vue'
 
@@ -20,6 +21,7 @@ type Tab =
   | 'insurance'
   | 'compliance'
   | 'firewood'
+  | 'rental'
   | 'alerts'
   | 'portfolio'
 
@@ -34,6 +36,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'insurance', label: '🛡 Vakuutus & Kalusto' },
   { id: 'compliance', label: '🔧 Määräaikaishuolto' },
   { id: 'firewood', label: '🪵 Polttopuu & Sauna' },
+  { id: 'rental', label: '🏖 Vuokraus & Kausi' },
   { id: 'alerts', label: '⏰ Hälytykset' },
   { id: 'portfolio', label: '📊 Salkku' },
 ]
@@ -72,6 +75,7 @@ function logout() {
       <InsuranceTab v-else-if="tab === 'insurance'" />
       <ComplianceTab v-else-if="tab === 'compliance'" />
       <FirewoodTab v-else-if="tab === 'firewood'" />
+      <RentalTab v-else-if="tab === 'rental'" />
       <AlertsTab v-else-if="tab === 'alerts'" />
       <PortfolioTab v-else-if="tab === 'portfolio'" />
     </main>

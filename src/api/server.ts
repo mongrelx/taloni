@@ -25,6 +25,41 @@ import { findResource, RESOURCES } from './router.js'
 
 const MAX_BODY_BYTES = 1_000_000 // 1 MB — riittää yksittäiselle tietueelle, estää muistin loppumisen
 
+// Kausikatsausten tarkistuslistapohjat — sama sisältö kuin TUI:n SEASONAL_TEMPLATES
+// (src/ui/Dashboard.tsx), kopioitu tähän koska TUI-komponentti ei ole jaettu moduuli.
+const SEASONAL_TEMPLATES = {
+  spring: {
+    label: 'Kevätavaus',
+    category: 'Kevätavaus',
+    month: '05',
+    day: '15',
+    tasks: [
+      'Avaa päävesihana ja tarkista vuodot',
+      'Käynnistä vesipumppu ja ilmaa putket',
+      'Ota kaivovesinäyte / tarkista veden laatu',
+      'Kytke sähköt ja sulakkeet päälle',
+      'Tarkista katto, räystäät ja rakenteet talven jäljiltä',
+      'Poista pakkasneste hajulukoista ja WC:stä',
+      'Tarkista tulisijat ja piippu ennen käyttöä',
+    ],
+  },
+  autumn: {
+    label: 'Syyssulku',
+    category: 'Syyssulku',
+    month: '10',
+    day: '01',
+    tasks: [
+      'Sulje päävesihana',
+      'Tyhjennä vesijärjestelmä ja putkistot',
+      'Lisää pakkasneste hajulukkoihin ja WC-pönttöön',
+      'Tyhjennä ja sulata jääkaappi / pakastin',
+      'Katkaise turhat sähköt, jätä peruslämpö päälle',
+      'Sulje kaasupullot ja tarkista paloturvallisuus',
+      'Vie roskat ja tarkista jätevesisäiliön taso',
+    ],
+  },
+} as const
+
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
   const text = JSON.stringify(body, null, 2)
   res.writeHead(status, {
@@ -295,6 +330,97 @@ export function createApiServer(opts: ServerOptions) {
           done++
         }
         sendJson(res, 200, { done, excluded: excluded.size })
+        return
+      }
+
+      // POST /api/bookings/:id/record-income — kirjaa varauksen vuokratulon taloustapahtumaksi
+      // (ei geneerinen CRUD). Sama sääntö kuin TUI:n recordBookingIncome(): ei peruttuja varauksia,
+      // ei kaksoiskirjausta, ei nollahintaisia.
+      if (
+        req.method === 'POST' &&
+        segments.length === 4 &&
+        segments[1] === 'bookings' &&
+        segments[3] === 'record-income'
+      ) {
+        const id = Number(segments[2])
+        const booking = db.getBookings().find((b) => b.id === id)
+        if (!booking) {
+          sendJson(res, 404, { error: `Ei löytynyt: bookings/${segments[2]}` })
+          return
+        }
+        if (booking.status === 'cancelled') {
+          sendJson(res, 400, { error: 'Peruttua varausta ei kirjata tuloksi.' })
+          return
+        }
+        if (booking.income_recorded) {
+          sendJson(res, 400, {
+            error: 'Tämän varauksen tulo on jo kirjattu.',
+          })
+          return
+        }
+        if (booking.price <= 0) {
+          sendJson(res, 400, {
+            error: 'Varauksella ei ole hintaa — ei kirjattavaa tuloa.',
+          })
+          return
+        }
+        db.addTransaction({
+          property_id: booking.property_id,
+          type: 'income',
+          category: 'Vuokraus',
+          amount: booking.price,
+          date: booking.start_date,
+          description: `Vuokratulo: ${booking.guest_name} (${booking.start_date}–${booking.end_date})`,
+          renovation_id: null,
+        })
+        db.updateBooking({ ...booking, income_recorded: 1 })
+        sendJson(res, 200, db.getBookings().find((b) => b.id === id) ?? null)
+        return
+      }
+
+      // POST /api/bookings/seasonal-checklist — Kevätavaus/Syyssulku-tarkistuslistan luonti
+      // tehtävinä (ei geneerinen CRUD). Sama SEASONAL_TEMPLATES-sisältö kuin TUI:ssa, ei
+      // uudelleentoteutettu selaimessa eri sisällöllä.
+      if (
+        req.method === 'POST' &&
+        segments.length === 3 &&
+        segments[1] === 'bookings' &&
+        segments[2] === 'seasonal-checklist'
+      ) {
+        const body = (await readJsonBody(req)) as {
+          property_id?: number
+          season?: 'spring' | 'autumn'
+        }
+        if (
+          !Number.isInteger(body.property_id) ||
+          (body.season !== 'spring' && body.season !== 'autumn')
+        ) {
+          sendJson(res, 400, {
+            error: 'property_id (number) ja season (spring|autumn) vaaditaan',
+          })
+          return
+        }
+        const tpl = SEASONAL_TEMPLATES[body.season]
+        const year = new Date().getFullYear()
+        const due = `${year}-${tpl.month}-${tpl.day}`
+        for (const title of tpl.tasks) {
+          db.addTask({
+            property_id: body.property_id as number,
+            title,
+            status: 'pending',
+            priority: 'medium',
+            due_date: due,
+            category: tpl.category,
+            cost: 0,
+            recurrence: 'none',
+            next_due: null,
+          })
+        }
+        sendJson(res, 200, {
+          label: tpl.label,
+          created: tpl.tasks.length,
+          dueDate: due,
+        })
         return
       }
 

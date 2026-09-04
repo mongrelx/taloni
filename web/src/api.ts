@@ -256,6 +256,24 @@ export interface Firewood {
   notes: string
 }
 
+export interface Booking {
+  id: number
+  property_id: number
+  guest_name: string
+  start_date: string
+  end_date: string
+  price: number
+  status: 'tentative' | 'confirmed' | 'completed' | 'cancelled'
+  income_recorded: 0 | 1
+  notes: string
+}
+
+export interface SeasonalChecklistResult {
+  label: string
+  created: number
+  dueDate: string
+}
+
 export interface CompostingRow {
   property_id: number
   propertyName: string

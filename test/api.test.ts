@@ -257,6 +257,71 @@ test('POST /api/fireplaces/bulk-sweep logs a sweep for all fireplaces on a prope
   assert.equal(excluded.last_sweep, null)
 })
 
+test('POST /api/bookings/:id/record-income creates an income transaction once, then rejects a repeat', async () => {
+  const props = await (await authedFetch('/api/properties')).json()
+  const propertyId = props[0].id
+
+  const created = await (
+    await authedFetch('/api/bookings', {
+      method: 'POST',
+      body: JSON.stringify({
+        property_id: propertyId,
+        guest_name: 'Testi Vieras',
+        start_date: '2026-07-01',
+        end_date: '2026-07-08',
+        price: 420,
+        status: 'confirmed',
+        income_recorded: 0,
+        notes: '',
+      }),
+    })
+  ).json()
+
+  const before = await (await authedFetch('/api/transactions')).json()
+
+  const res = await authedFetch(`/api/bookings/${created.id}/record-income`, {
+    method: 'POST',
+  })
+  assert.equal(res.status, 200)
+  const booking = await res.json()
+  assert.equal(booking.income_recorded, 1)
+
+  const after = await (await authedFetch('/api/transactions')).json()
+  assert.equal(after.length, before.length + 1)
+  const tx = after.find((t: { description: string }) =>
+    t.description.includes('Testi Vieras'),
+  )
+  assert.equal(tx.amount, 420)
+  assert.equal(tx.type, 'income')
+
+  const repeat = await authedFetch(
+    `/api/bookings/${created.id}/record-income`,
+    { method: 'POST' },
+  )
+  assert.equal(repeat.status, 400)
+})
+
+test('POST /api/bookings/seasonal-checklist creates the spring checklist as tasks', async () => {
+  const props = await (await authedFetch('/api/properties')).json()
+  const propertyId = props[0].id
+
+  const res = await authedFetch('/api/bookings/seasonal-checklist', {
+    method: 'POST',
+    body: JSON.stringify({ property_id: propertyId, season: 'spring' }),
+  })
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.equal(body.label, 'Kevätavaus')
+  assert.ok(body.created > 0)
+
+  const tasks = await (
+    await authedFetch(`/api/tasks?property_id=${propertyId}`)
+  ).json()
+  assert.ok(
+    tasks.some((t: { category: string }) => t.category === 'Kevätavaus'),
+  )
+})
+
 test('report endpoints require auth like everything else under /api', async () => {
   const res = await fetch(`${baseUrl}/api/reports/portfolio`)
   assert.equal(res.status, 401)
