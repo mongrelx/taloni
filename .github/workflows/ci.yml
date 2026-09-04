@@ -23,6 +23,11 @@ jobs:
 
       - run: npm ci
 
+      # Testit palvelevat myös web-UI:ta staattisena (ks. test/api.test.ts) — pitää olla
+      # rakennettuna ennen testejä, ei vasta lopullisen "Build"-vaiheen yhteydessä.
+      - name: Build web UI
+        run: npm run build:web
+
       - name: Lint
         run: npm run lint
 
