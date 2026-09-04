@@ -107,7 +107,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [~] [#20](https://github.com/mongrelx/taloni/issues/20) — Image attachments & photo documentation (osittain: `doc_type: 'photo'`, `linked_type: 'renovation'|'task'`, `taloni gallery` HTML-vienti toteutettu; pienoiskuvat ja TUI-kuvagalleria/-linkitysvalitsin vielä auki)
 - [ ] [#21](https://github.com/mongrelx/taloni/issues/21) — Google Maps integration
 - [ ] [#22](https://github.com/mongrelx/taloni/issues/22) — Utility company integrations (water & electricity)
-- [ ] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (companion to TUI)
+- [~] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (osittain: Vue-pohjainen web-UI toteutettu, tarjoillaan `taloni serve`:stä — kiinteistöt, tehtävät, hälytykset, salkku; kuvat, kalenterinäkymä ja mobiilioptimointi vielä auki)
 - [~] [#24](https://github.com/mongrelx/taloni/issues/24) — Notification system (osittain: `taloni alerts [--days N]` digest + exit-koodi toteutettu; sähköposti/SMS-lähetys vielä auki, tarvitsee palveluntarjoajapäätöksen)
 - [~] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking (osittain: kulujen linkitys remonttiin + `taloni renovations` budjettivertailu toteutettu; materiaali/työkustannusarviot ja historiadata vielä auki)
 - [~] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration (osittain: `taloni weather [paikka]` — FMI-avoin data, pakkasvaroitukset toteutettu; ennustepohjaiset tehtäväehdotukset ja lumikuorman seuranta vielä auki)
