@@ -110,7 +110,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [ ] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (companion to TUI)
 - [~] [#24](https://github.com/mongrelx/taloni/issues/24) — Notification system (osittain: `taloni alerts [--days N]` digest + exit-koodi toteutettu; sähköposti/SMS-lähetys vielä auki, tarvitsee palveluntarjoajapäätöksen)
 - [~] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking (osittain: kulujen linkitys remonttiin + `taloni renovations` budjettivertailu toteutettu; materiaali/työkustannusarviot ja historiadata vielä auki)
-- [ ] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration
+- [~] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration (osittain: `taloni weather [paikka]` — FMI-avoin data, pakkasvaroitukset toteutettu; ennustepohjaiset tehtäväehdotukset ja lumikuorman seuranta vielä auki)
 - [~] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (osittain: `taloni export-json` ja `taloni import properties|transactions <csv>` toteutettu; muista työkaluista tuonti ja PostgreSQL-migraatio-opas vielä auki)
 - [ ] [#30](https://github.com/mongrelx/taloni/issues/30) — Offline-first & sync support
 - [ ] [#31](https://github.com/mongrelx/taloni/issues/31) — Multi-language support (Swedish, English)
