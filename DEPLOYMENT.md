@@ -37,23 +37,36 @@ Data (the SQLite database and, if generated, the API key) lives in the `taloni-d
 volume, mounted at `/home/node/.taloni`. It survives `docker compose down`; `docker compose down
 -v` removes it.
 
-## TLS via Caddy (optional)
+## TLS via Caddy (recommended — this is the default in the OCI workflow)
 
-`docker-compose.yml` includes an optional `caddy` service (profile `proxy`) that reverse-proxies
-to `taloni` and provisions a Let's Encrypt certificate automatically once `DOMAIN` points a real
-DNS name at the host:
+`docker-compose.yml` includes a `caddy` service (profile `proxy`) that reverse-proxies to
+`taloni` and provisions a Let's Encrypt certificate automatically once `DOMAIN` points a real
+DNS name at the host. `taloni`'s own port (3000) isn't published to the host at all by default —
+Caddy is the only way in, so the API key never travels unencrypted.
+
+**Don't own a domain?** [sslip.io](https://sslip.io) gives you one for free: `<ip-with-dots>.sslip.io`
+resolves to that IP with no signup — e.g. `203.0.113.1.sslip.io` resolves to `203.0.113.1`. Let's
+Encrypt treats it like any other real domain, so this gets you a genuine trusted certificate with
+zero DNS setup. This is what `OCI_DOMAIN` should be set to if you don't have your own domain.
 
 ```sh
 export TALONI_API_KEY=$(openssl rand -base64 24)
-export DOMAIN=api.example.com
+export DOMAIN=api.example.com   # or: 203.0.113.1.sslip.io
 docker compose --profile proxy up -d
 ```
 
-**If you enable this**, remove (or firewall) the direct `3000:3000` port mapping on the `taloni`
-service in `docker-compose.yml` so traffic can only reach the API through Caddy on 443 — otherwise
-the unencrypted, directly-exposed port bypasses TLS entirely.
+Without a real `DOMAIN` (including sslip.io), Caddy falls back to `localhost` with its own
+internal (self-signed) CA — fine for local testing, not for a real deployment.
 
-Without a real `DOMAIN`, Caddy falls back to `localhost` with its own internal (self-signed) CA.
+If you'd rather skip Caddy/TLS entirely (e.g. local testing with a real IP, no domain needed),
+uncomment `ports: - '3000:3000'` on the `taloni` service and run `docker compose up -d taloni`
+without the `proxy` profile — but then the API key travels unencrypted, so don't do this for
+anything reachable outside a trusted network.
+
+Also remember to open the ports you're actually using — both the instance's own firewall (e.g.
+`iptables`/`ufw`) and, on OCI, the subnet's Security List / any attached Network Security Group
+all need a rule, or traffic gets silently dropped before it reaches Docker at all. That's three
+separate places traffic can be blocked; if something that should work doesn't, check all three.
 
 ## Deploying to OCI via GitHub Actions
 
