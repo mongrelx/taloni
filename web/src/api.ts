@@ -105,6 +105,30 @@ export interface Transaction {
   amount: number
   date: string
   description: string
+  renovation_id: number | null
+}
+
+export interface Renovation {
+  id: number
+  property_id: number
+  project_name: string
+  status: 'planning' | 'in_progress' | 'completed'
+  budget: number
+  spent: number
+  start_date: string
+  end_date: string | null
+}
+
+export interface RenovationBudgetRow {
+  renovationId: number
+  projectName: string
+  propertyName: string
+  status: string
+  budget: number
+  spent: number
+  linkedExpenses: number
+  variance: number
+  overBudget: boolean
 }
 
 export interface AlertRow {
