@@ -17,6 +17,13 @@
 # NOTE: the `secrets` context can't be read directly in a job-level `if:` (GitHub Actions
 # restriction), so the "ready" check below reads secrets into env vars in a step and gates
 # every later step on that step's output instead — the documented workaround.
+#
+# NOTE: builds natively on a GitHub-hosted arm64 runner (ubuntu-24.04-arm), matching OCI's
+# free-tier Ampere shape. An earlier version cross-built for amd64+arm64 via buildx/QEMU
+# emulation from an amd64 runner; the arm64 leg under emulation took 10+ minutes (vs ~2 min
+# total natively) with no way to see progress mid-build, so this deploy targets arm64 only.
+# If you're deploying to an amd64 host instead, change `runs-on` back to `ubuntu-latest` and
+# drop `--platform linux/arm64` from the build step below.
 
 name: Deploy to OCI
 
@@ -31,7 +38,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     env:
       OCI_HOST: ${{ secrets.OCI_HOST }}
       OCI_SSH_USER: ${{ secrets.OCI_SSH_USER }}
@@ -53,25 +60,16 @@ jobs:
       - uses: actions/checkout@v4
         if: steps.check.outputs.ready == 'true'
 
-      # GitHub-hosted runners are amd64; OCI's free-tier Ampere shapes are arm64. Build both so
-      # the image works on either, via QEMU emulation under buildx (no marketplace action needed
-      # — tonistiigi/binfmt is the same image docker/setup-qemu-action itself wraps).
-      - name: Set up QEMU + buildx for multi-arch build
-        if: steps.check.outputs.ready == 'true'
-        run: |
-          docker run --rm --privileged tonistiigi/binfmt --install all
-          docker buildx create --use
-
-      - name: Build and push multi-arch image
+      - name: Build and push image (native arm64)
         if: steps.check.outputs.ready == 'true'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
+          docker build \
             -t ghcr.io/${{ github.repository_owner }}/taloni:latest \
             -t ghcr.io/${{ github.repository_owner }}/taloni:${{ github.sha }} \
-            --push \
             .
+          docker push ghcr.io/${{ github.repository_owner }}/taloni:latest
+          docker push ghcr.io/${{ github.repository_owner }}/taloni:${{ github.sha }}
 
       - name: Set up SSH
         if: steps.check.outputs.ready == 'true'
