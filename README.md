@@ -20,6 +20,8 @@ Koko käyttöliittymä on toteutettu **puhtaasti suomeksi** ja se toimii suoraan
 - **📎 Asiakirjaliitteet:** Liitä PDF-todistus (esim. nuohoustodistus päivämäärineen) suoraan tietueeseen — tulisijaan, jätevesijärjestelmään, vesitutkimukseen tai vakuutukseen. Tulisijan nuohoustodistukset näkyvät Määräaikaishuolto-välilehdellä, ja `[o]` avaa liitetiedoston käyttöjärjestelmän oletussovelluksella.
 - **🔌 Liittymät & jätehuolto:** Kirjaa kiinteistölle sähköliittymän koko (pääsulake, esim. 3×25 A), vesiliittymän koko/tyyppi sekä jätehuolto (yhtiö, astiakoko, tyhjennysväli, biojätteen käsittely). Jos biojäte kompostoidaan kotona ilman kunnan ilmoitusta, sovellus muistuttaa ilmoitusvelvollisuudesta (jätelaki 646/2011).
 - **🚽 Jäteveden vaatimustenmukaisuus:** Kirjaa jätevesijärjestelmän tyyppi, rakennusvuosi, ranta-/pohjavesialuestatus, wc-vedet ja mahdollinen vapautus. Sovellus arvioi automaattisesti puutteet ja pakolliset toimenpiteet (haja-asutuksen jätevesiasetus VNa 157/2017): herkillä alueilla ohitettu 31.10.2019 takaraja korostuu, muualla korjaus kytkeytyy remonttiin. Arvio on informatiivinen — varmista aina kunnan ympäristönsuojeluviranomaiselta.
+- **📊 Raportointi:** Salkkuvertailu (`portfolio`, käyttöaste/ROI/arvonseuranta), remonttien budjetti vs. toteutunut (`renovations`), energiatehokkuus kWh/m²/v (`energy`), lähestyvät/myöhässä olevat velvoitteet (`alerts`), sekä sää FMI:n avoimesta datasta (`weather`).
+- **🌐 REST-rajapinta & käyttöönotto:** `taloni serve` käynnistää API-avaimella suojatun REST-rajapinnan (CRUD kaikille tietueille). Dockerfile, docker-compose (valinnainen Caddy + automaattinen TLS) ja OCI-käyttöönoton GitHub Actions -työnkulku — ks. [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
@@ -184,18 +186,41 @@ node dist/cli.js add-tx 650 -t income -c Vuokraus -d "Mökin vuokratulo" -i 1
 node dist/cli.js report 2026
 node dist/cli.js report 2026 --rental-only
 
-# Vie taulut CSV-tiedostoiksi (oletushakemisto ./taloni-export)
+# Salkkuvertailu, remonttien budjetti vs. toteutunut, energiatehokkuus, hälytykset
+node dist/cli.js portfolio 2026
+node dist/cli.js renovations
+node dist/cli.js energy 2026
+node dist/cli.js alerts --days 30
+
+# Sää (Ilmatieteen laitoksen avoin data — ainoa ulkoinen verkkokutsu koko sovelluksessa)
+node dist/cli.js weather
+node dist/cli.js weather Tampere
+
+# Kirjaa kiinteistön arvioitu arvo (arvonseuranta ajan yli)
+node dist/cli.js add-valuation 1 250000 -s "Kiinteistönvälittäjän arvio"
+
+# Vie taulut CSV-tiedostoiksi (oletushakemisto ./taloni-export), koko tietokanta JSON:ksi,
+# tai kuvagalleria/asiakirjat HTML-sivuksi
 node dist/cli.js export
 node dist/cli.js export ~/varmuuskopiot/csv
+node dist/cli.js export-json
+node dist/cli.js gallery
+
+# Tuo kiinteistöjä tai taloustapahtumia CSV:stä (sarakkeet: ks. export-komennon tuottama tiedosto)
+node dist/cli.js import properties uudet-kiinteistot.csv
+node dist/cli.js import transactions kulut.csv
 
 # Varmuuskopioi tietokanta aikaleimatulla nimellä (~/.taloni/backups)
 node dist/cli.js backup
+
+# Käynnistä REST-rajapinta (katso DEPLOYMENT.md Docker-/OCI-käyttöönottoon)
+node dist/cli.js serve
 ```
 
 ### 3. Laadunvalvonta & Testaus
 
 ```bash
-# Aja kaikki testit (41 testiä: CLI, tietokanta, migraatiot, raportointi, validointi)
+# Aja kaikki testit (CLI, tietokanta, migraatiot, raportointi, sää, REST-rajapinta, validointi)
 npm test
 
 # Tarkista koodin tyyli ja säännöt Biome-linterillä
