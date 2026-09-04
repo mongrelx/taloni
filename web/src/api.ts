@@ -64,6 +64,24 @@ export interface Property {
   water_source: 'well' | 'mains'
   build_year: number
   location: string
+  // Loput kentät eivät (vielä) ole web-UI:n muokattavissa (ks. issue #48) — kannettava
+  // muuttumattomana läpi PUT-päivityksissä, koska updateProperty() vaatii koko rivin.
+  sauna_type: 'none' | 'wood' | 'electric'
+  sauna_info: string
+  property_tax: number
+  road_fee: number
+  electricity_fuse: string
+  water_connection: string
+  waste_provider: string
+  waste_bin: string
+  waste_interval: string
+  biowaste: 'collection' | 'home_compost' | 'shared' | 'none'
+  compost_registered: 0 | 1
+  compost_reg_date: string
+  floor_area: number
+  energy_rating: '' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+  energy_cert_date: string
+  energy_cert_valid_until: string
 }
 
 export interface Task {
