@@ -280,6 +280,52 @@ export interface CompostingRow {
   assessment: { level: 'ok' | 'warning'; message: string } | null
 }
 
+export interface Contact {
+  id: number
+  name: string
+  role: 'nuohooja' | 'lvi' | 'sahko' | 'loka' | 'isannointi' | 'other'
+  phone: string
+  email: string
+  notes: string
+}
+
+export type DocumentLinkType =
+  | ''
+  | 'fireplace'
+  | 'wastewater'
+  | 'water_test'
+  | 'insurance'
+  | 'renovation'
+  | 'task'
+
+export interface Document {
+  id: number
+  property_id: number
+  doc_type:
+    | 'deed'
+    | 'purchase'
+    | 'permit'
+    | 'inspection'
+    | 'warranty'
+    | 'photo'
+    | 'other'
+  title: string
+  file_path: string
+  issued_date: string
+  notes: string
+  linked_type: DocumentLinkType
+  linked_id: number
+}
+
+export interface MeterReading {
+  id: number
+  property_id: number
+  meter_type: 'electric' | 'water'
+  reading: number
+  reading_date: string
+  notes: string
+}
+
 export interface AlertRow {
   date: string
   daysUntil: number

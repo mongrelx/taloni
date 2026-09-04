@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, before, test } from 'node:test'
@@ -339,4 +339,72 @@ test('unknown non-/api paths fall back to the SPA shell (client-side routing)', 
   assert.equal(res.status, 200)
   const html = await res.text()
   assert.ok(html.includes('<title>Taloni</title>'))
+})
+
+test('GET /api/documents/:id/file serves the file stored at that document’s file_path', async () => {
+  const props = await (await authedFetch('/api/properties')).json()
+  const propertyId = props[0].id
+  const filePath = join(
+    mkdtempSync(join(tmpdir(), 'taloni-doc-')),
+    'todiste.txt',
+  )
+  writeFileSync(filePath, 'nuohoustodistus 2026')
+
+  await authedFetch('/api/documents', {
+    method: 'POST',
+    body: JSON.stringify({
+      property_id: propertyId,
+      doc_type: 'inspection',
+      title: 'Testitodistus',
+      file_path: filePath,
+      issued_date: '2026-01-01',
+      notes: '',
+      linked_type: '',
+      linked_id: 0,
+    }),
+  })
+  const docs = await (await authedFetch('/api/documents')).json()
+  const doc = docs.find((d: { title: string }) => d.title === 'Testitodistus')
+  assert.ok(doc)
+
+  const res = await authedFetch(`/api/documents/${doc.id}/file`)
+  assert.equal(res.status, 200)
+  assert.equal(res.headers.get('content-type'), 'text/plain; charset=utf-8')
+  assert.equal(await res.text(), 'nuohoustodistus 2026')
+})
+
+test('GET /api/documents/:id/file returns 404 when the file is missing from disk', async () => {
+  const props = await (await authedFetch('/api/properties')).json()
+  const propertyId = props[0].id
+  await authedFetch('/api/documents', {
+    method: 'POST',
+    body: JSON.stringify({
+      property_id: propertyId,
+      doc_type: 'other',
+      title: 'Kadonnut tiedosto',
+      file_path: '/this/path/does/not/exist/on/disk.pdf',
+      issued_date: '2026-01-01',
+      notes: '',
+      linked_type: '',
+      linked_id: 0,
+    }),
+  })
+  const docs = await (await authedFetch('/api/documents')).json()
+  const doc = docs.find(
+    (d: { title: string }) => d.title === 'Kadonnut tiedosto',
+  )
+  assert.ok(doc)
+
+  const res = await authedFetch(`/api/documents/${doc.id}/file`)
+  assert.equal(res.status, 404)
+})
+
+test('GET /api/documents/:id/file returns 404 for an unknown document id', async () => {
+  const res = await authedFetch('/api/documents/999999/file')
+  assert.equal(res.status, 404)
+})
+
+test('GET /api/documents/:id/file requires auth like everything else under /api', async () => {
+  const res = await fetch(`${baseUrl}/api/documents/1/file`)
+  assert.equal(res.status, 401)
 })

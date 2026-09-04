@@ -8,7 +8,8 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from 'node:http'
-import { extname, join, normalize } from 'node:path'
+import { homedir } from 'node:os'
+import { basename, extname, join, normalize } from 'node:path'
 import * as db from '../db/index.js'
 import {
   energyEfficiencyReport,
@@ -121,6 +122,12 @@ const MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
+  '.pdf': 'application/pdf',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.txt': 'text/plain; charset=utf-8',
 }
 
 // Palvelee web-UI:n staattiset tiedostot polkuliikkeen (path traversal) estäen; tuntemattomat
@@ -421,6 +428,43 @@ export function createApiServer(opts: ServerOptions) {
           created: tpl.tasks.length,
           dueDate: due,
         })
+        return
+      }
+
+      // GET /api/documents/:id/file — palvelee asiakirjan tiedoston (ei geneerinen CRUD). Vastaa
+      // TUI:n [o] openFileWithOS():ia; polku tulee AINA tietokannan document.file_path-kentästä,
+      // ei koskaan URL:sta, joten pyyntö ei voi kohdistua mielivaltaiseen palvelimen polkuun URLin
+      // kautta (avaimen haltijalla on joka tapauksessa täysi luku/kirjoitusoikeus koko kantaan).
+      if (
+        req.method === 'GET' &&
+        segments.length === 4 &&
+        segments[1] === 'documents' &&
+        segments[3] === 'file'
+      ) {
+        const id = Number(segments[2])
+        const doc = db.getDocuments().find((d) => d.id === id)
+        if (!doc) {
+          sendJson(res, 404, { error: `Ei löytynyt: documents/${segments[2]}` })
+          return
+        }
+        const path = doc.file_path.trim()
+        const expanded = path.startsWith('~')
+          ? path.replace(/^~/, homedir())
+          : path
+        if (!path || !existsSync(expanded)) {
+          sendJson(res, 404, {
+            error: 'Tiedostoa ei löytynyt palvelimen tiedostojärjestelmästä.',
+          })
+          return
+        }
+        const body = readFileSync(expanded)
+        const ext = extname(expanded)
+        res.writeHead(200, {
+          'Content-Type': MIME_TYPES[ext] ?? 'application/octet-stream',
+          'Content-Length': body.length,
+          'Content-Disposition': `inline; filename="${basename(expanded).replace(/"/g, '')}"`,
+        })
+        res.end(body)
         return
       }
 

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { clearApiKey, getApiKey } from './api'
 import AlertsTab from './components/AlertsTab.vue'
+import ArchiveTab from './components/ArchiveTab.vue'
 import ComplianceTab from './components/ComplianceTab.vue'
 import FinanceTab from './components/FinanceTab.vue'
 import FirewoodTab from './components/FirewoodTab.vue'
@@ -22,6 +23,7 @@ type Tab =
   | 'compliance'
   | 'firewood'
   | 'rental'
+  | 'archive'
   | 'alerts'
   | 'portfolio'
 
@@ -37,6 +39,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'compliance', label: '🔧 Määräaikaishuolto' },
   { id: 'firewood', label: '🪵 Polttopuu & Sauna' },
   { id: 'rental', label: '🏖 Vuokraus & Kausi' },
+  { id: 'archive', label: '📇 Yhteystiedot & Arkisto' },
   { id: 'alerts', label: '⏰ Hälytykset' },
   { id: 'portfolio', label: '📊 Salkku' },
 ]
@@ -76,6 +79,7 @@ function logout() {
       <ComplianceTab v-else-if="tab === 'compliance'" />
       <FirewoodTab v-else-if="tab === 'firewood'" />
       <RentalTab v-else-if="tab === 'rental'" />
+      <ArchiveTab v-else-if="tab === 'archive'" />
       <AlertsTab v-else-if="tab === 'alerts'" />
       <PortfolioTab v-else-if="tab === 'portfolio'" />
     </main>
