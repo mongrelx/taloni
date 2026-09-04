@@ -21,7 +21,7 @@ Koko käyttöliittymä on toteutettu **puhtaasti suomeksi** ja se toimii suoraan
 - **🔌 Liittymät & jätehuolto:** Kirjaa kiinteistölle sähköliittymän koko (pääsulake, esim. 3×25 A), vesiliittymän koko/tyyppi sekä jätehuolto (yhtiö, astiakoko, tyhjennysväli, biojätteen käsittely). Jos biojäte kompostoidaan kotona ilman kunnan ilmoitusta, sovellus muistuttaa ilmoitusvelvollisuudesta (jätelaki 646/2011).
 - **🚽 Jäteveden vaatimustenmukaisuus:** Kirjaa jätevesijärjestelmän tyyppi, rakennusvuosi, ranta-/pohjavesialuestatus, wc-vedet ja mahdollinen vapautus. Sovellus arvioi automaattisesti puutteet ja pakolliset toimenpiteet (haja-asutuksen jätevesiasetus VNa 157/2017): herkillä alueilla ohitettu 31.10.2019 takaraja korostuu, muualla korjaus kytkeytyy remonttiin. Arvio on informatiivinen — varmista aina kunnan ympäristönsuojeluviranomaiselta.
 - **📊 Raportointi:** Salkkuvertailu (`portfolio`, käyttöaste/ROI/arvonseuranta), remonttien budjetti vs. toteutunut (`renovations`), energiatehokkuus kWh/m²/v (`energy`), lähestyvät/myöhässä olevat velvoitteet (`alerts`), sekä sää FMI:n avoimesta datasta (`weather`).
-- **🌐 REST-rajapinta & käyttöönotto:** `taloni serve` käynnistää API-avaimella suojatun REST-rajapinnan (CRUD kaikille tietueille). Dockerfile, docker-compose (valinnainen Caddy + automaattinen TLS) ja OCI-käyttöönoton GitHub Actions -työnkulku — ks. [DEPLOYMENT.md](DEPLOYMENT.md).
+- **🌐 REST-rajapinta, web-UI & käyttöönotto:** `taloni serve` käynnistää API-avaimella suojatun REST-rajapinnan (CRUD kaikille tietueille + raportit) ja tarjoilee samasta osoitteesta kevyen Vue-pohjaisen web-käyttöliittymän (kiinteistöt, tehtävät, hälytykset, salkkuvertailu) — toimii sekä paikallisesti (`http://localhost:3000`) että selaimessa mihin tahansa käyttöönotettuun instanssiin osoitettuna. Dockerfile, docker-compose (valinnainen Caddy + automaattinen TLS) ja OCI-käyttöönoton GitHub Actions -työnkulku — ks. [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
@@ -213,7 +213,8 @@ node dist/cli.js import transactions kulut.csv
 # Varmuuskopioi tietokanta aikaleimatulla nimellä (~/.taloni/backups)
 node dist/cli.js backup
 
-# Käynnistä REST-rajapinta (katso DEPLOYMENT.md Docker-/OCI-käyttöönottoon)
+# Käynnistä REST-rajapinta + web-UI osoitteessa http://localhost:3000
+# (katso DEPLOYMENT.md Docker-/OCI-käyttöönottoon)
 node dist/cli.js serve
 ```
 

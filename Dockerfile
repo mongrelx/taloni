@@ -9,6 +9,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY tsconfig.json tsup.config.ts ./
 COPY src ./src
+COPY scripts ./scripts
+COPY web ./web
 RUN npm run build
 
 FROM node:22-alpine AS runtime

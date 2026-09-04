@@ -30,7 +30,8 @@
   },
   "scripts": {
     "dev": "tsx src/cli.ts",
-    "build": "tsup",
+    "build:web": "npm --prefix web ci && npm --prefix web run build",
+    "build": "npm run build:web && tsup && node scripts/copy-web-dist.mjs",
     "start": "node dist/cli.js",
     "test": "node --import tsx --test test/*.test.ts",
     "lint": "biome check .",

@@ -1,11 +1,21 @@
-// HTTP-palvelin taloni-tietokannalle (issue #32). Node:n sisäänrakennettu http-moduuli — ei uutta
-// riippuvuutta. Yksi jaettu API-avain (ks. auth.ts) suojaa kaikkia reittejä paitsi /health.
+// HTTP-palvelin taloni-tietokannalle (issue #32) ja web-käyttöliittymälle. Node:n sisäänrakennettu
+// http-moduuli — ei uutta ajonaikaista riippuvuutta. Yksi jaettu API-avain (ks. auth.ts) suojaa
+// /api/*-reittejä; /health ja staattinen web-UI ovat julkisia (UI ei sisällä salaisuuksia — avain
+// syötetään selaimessa ja tallentuu vain käyttäjän omaan localStorageen).
+import { existsSync, readFileSync } from 'node:fs'
 import {
   createServer,
   type IncomingMessage,
   type ServerResponse,
 } from 'node:http'
+import { extname, join, normalize } from 'node:path'
 import * as db from '../db/index.js'
+import {
+  energyEfficiencyReport,
+  portfolioReport,
+  renovationBudgetReport,
+  upcomingObligations,
+} from '../report.js'
 import {
   extractBearerToken,
   isValidApiKey,
@@ -22,7 +32,7 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
     'Content-Length': Buffer.byteLength(text),
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
   })
   res.end(text)
 }
@@ -55,6 +65,51 @@ async function readJsonBody(req: IncomingMessage): Promise<unknown> {
   })
 }
 
+// --- Staattinen web-UI ---
+
+// Löytää rakennetun web-UI:n hakemiston sekä kehityksessä (tsx, src/api/server.ts) että
+// tuotannossa (tsup:n bundlaama dist/cli.js, jonka viereen `npm run build` kopioi web/dist:n).
+function resolveWebDistDir(): string | null {
+  const candidates = [
+    join(import.meta.dirname, 'web'), // tuotanto: dist/cli.js viereen kopioitu web/
+    join(import.meta.dirname, '..', '..', 'web', 'dist'), // kehitys: src/api/ -> juuri -> web/dist
+  ]
+  return candidates.find((c) => existsSync(join(c, 'index.html'))) ?? null
+}
+
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
+}
+
+// Palvelee web-UI:n staattiset tiedostot polkuliikkeen (path traversal) estäen; tuntemattomat
+// polut palautuvat index.html:ään (SPA-reititys / suora syväreitille lataus).
+function serveStatic(
+  res: ServerResponse,
+  webDistDir: string,
+  pathname: string,
+): void {
+  const safePath = normalize(pathname).replace(/^(\.\.[/\\])+/, '')
+  const filePath = join(webDistDir, safePath)
+  const target =
+    filePath.startsWith(webDistDir) && existsSync(filePath) && safePath !== '/'
+      ? filePath
+      : join(webDistDir, 'index.html')
+  const ext = extname(target)
+  const body = readFileSync(target)
+  res.writeHead(200, {
+    'Content-Type': MIME_TYPES[ext] ?? 'application/octet-stream',
+    'Content-Length': body.length,
+  })
+  res.end(body)
+}
+
 export interface ServerOptions {
   host: string
   port: number
@@ -63,6 +118,7 @@ export interface ServerOptions {
 export function createApiServer(opts: ServerOptions) {
   const apiKeys = loadOrCreateApiKeys()
   db.initDb()
+  const webDistDir = resolveWebDistDir()
 
   const server = createServer(async (req, res) => {
     try {
@@ -85,10 +141,57 @@ export function createApiServer(opts: ServerOptions) {
         return
       }
 
-      // Auth — kaikki muut reitit paitsi /health vaativat kelvollisen Bearer-tokenin.
+      // Web-UI: kaikki ei-/api-polut palvelevat staattista käyttöliittymää (ei vaadi API-avainta —
+      // UI itse pyytää avaimen selaimessa ja liittää sen omiin /api-kutsuihinsa).
+      if (req.method === 'GET' && segments[0] !== 'api') {
+        if (webDistDir) {
+          serveStatic(res, webDistDir, url.pathname)
+        } else {
+          sendJson(res, 404, {
+            error:
+              'Web-UI ei ole rakennettu (web/dist puuttuu) — aja "npm run build" web-hakemistossa.',
+          })
+        }
+        return
+      }
+
+      // Auth — kaikki /api/*-reitit vaativat kelvollisen Bearer-tokenin.
       const token = extractBearerToken(req.headers.authorization)
       if (!token || !isValidApiKey(token, apiKeys)) {
         sendJson(res, 401, { error: 'Puuttuva tai virheellinen API-avain' })
+        return
+      }
+
+      // GET /api/reports/* — samat raportit kuin CLI:ssä (portfolio/alerts/renovations/energy),
+      // nyt myös web-UI:n ja muiden asiakkaiden käytettävissä. Ei kirjoita mitään.
+      if (req.method === 'GET' && segments[1] === 'reports') {
+        const report = segments[2]
+        const year = url.searchParams.has('year')
+          ? Number(url.searchParams.get('year'))
+          : new Date().getFullYear()
+        if (report === 'portfolio') {
+          sendJson(res, 200, portfolioReport(year))
+          return
+        }
+        if (report === 'alerts') {
+          const days = url.searchParams.has('days')
+            ? Number(url.searchParams.get('days'))
+            : 30
+          sendJson(res, 200, upcomingObligations(days))
+          return
+        }
+        if (report === 'renovations') {
+          sendJson(res, 200, renovationBudgetReport())
+          return
+        }
+        if (report === 'energy') {
+          sendJson(res, 200, energyEfficiencyReport(year))
+          return
+        }
+        sendJson(res, 404, {
+          error: `Tuntematon raportti: ${report ?? ''}`,
+          available: ['portfolio', 'alerts', 'renovations', 'energy'],
+        })
         return
       }
 

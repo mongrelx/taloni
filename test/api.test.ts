@@ -162,3 +162,62 @@ test('globalOnly resources (contacts) ignore property_id filtering', async () =>
   const contacts = await res.json()
   assert.ok(contacts.length > 0) // ei tyhjä, koska property_id-suodatus ei koske globaaleja resursseja
 })
+
+test('GET /api/reports/portfolio returns the portfolio report', async () => {
+  const res = await authedFetch('/api/reports/portfolio?year=2026')
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.equal(body.year, 2026)
+  assert.ok(Array.isArray(body.rows))
+  assert.ok(body.rows.length >= 3)
+  assert.ok('totals' in body)
+})
+
+test('GET /api/reports/alerts returns upcoming/overdue obligations', async () => {
+  const res = await authedFetch('/api/reports/alerts?days=90')
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.ok(Array.isArray(body))
+  assert.ok(body.length > 0)
+  assert.ok('daysUntil' in body[0])
+})
+
+test('GET /api/reports/renovations returns budget-vs-actual rows', async () => {
+  const res = await authedFetch('/api/reports/renovations')
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.ok(Array.isArray(body))
+  assert.ok(body.some((r: { projectName: string }) => r.projectName))
+})
+
+test('GET /api/reports/energy returns per-property efficiency rows', async () => {
+  const res = await authedFetch('/api/reports/energy?year=2026')
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.ok(Array.isArray(body))
+  assert.ok(body.some((r: { name: string }) => r.name === 'Metsäpirtti'))
+})
+
+test('an unknown report name returns 404', async () => {
+  const res = await authedFetch('/api/reports/bogus')
+  assert.equal(res.status, 404)
+})
+
+test('report endpoints require auth like everything else under /api', async () => {
+  const res = await fetch(`${baseUrl}/api/reports/portfolio`)
+  assert.equal(res.status, 401)
+})
+
+test('the static web UI is served without auth', async () => {
+  const res = await fetch(`${baseUrl}/`)
+  assert.equal(res.status, 200)
+  const html = await res.text()
+  assert.ok(html.includes('<title>Taloni</title>'))
+})
+
+test('unknown non-/api paths fall back to the SPA shell (client-side routing)', async () => {
+  const res = await fetch(`${baseUrl}/some/deep/link`)
+  assert.equal(res.status, 200)
+  const html = await res.text()
+  assert.ok(html.includes('<title>Taloni</title>'))
+})

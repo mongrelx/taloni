@@ -1,11 +1,26 @@
 # Deploying the taloni API
 
-`taloni serve` runs a REST API over the same SQLite database the TUI uses. This document covers
-running it in Docker, and deploying it to an OCI (Oracle Cloud Infrastructure) compute instance
-via the `deploy-oci.yml` GitHub Actions workflow.
+`taloni serve` runs a REST API over the same SQLite database the TUI uses, and serves a small
+Vue-based web UI (properties, tasks, alerts, portfolio) from the same address — `npm run build`
+builds both (see [Web UI](#web-ui) below). This document covers running it in Docker, and
+deploying it to an OCI (Oracle Cloud Infrastructure) compute instance via the `deploy-oci.yml`
+GitHub Actions workflow.
 
 The interactive TUI (`taloni` with no arguments) is not meant to run in a container — only
 `taloni serve` is.
+
+## Web UI
+
+The web app lives in `web/` as its own npm project (Vue 3 + Vite), built separately from the CLI
+and copied into `dist/web` by the root `npm run build`. It's a thin client over the REST API
+below — same-origin `fetch` calls, an API key entered once and stored in `localStorage`. Nothing
+in the built assets is secret, so it's served without authentication (the API itself still is).
+
+For frontend-only iteration: run `taloni serve` in one terminal, then `npm run dev` inside `web/`
+in another — Vite proxies `/api` and `/health` to `localhost:3000` (see `web/vite.config.ts`) with
+hot reload. It intentionally doesn't cover every entity in the API — properties, tasks (with
+add/complete), alerts, and the portfolio comparison, matching the CLI's original priorities
+(`add-task`/`add-tx`) rather than the full 18-resource CRUD surface.
 
 ## Authentication
 
@@ -32,6 +47,8 @@ docker compose up -d taloni
 curl http://localhost:3000/health
 curl http://localhost:3000/api/properties -H "Authorization: Bearer $TALONI_API_KEY"
 ```
+
+Or open `http://localhost:3000` in a browser for the web UI — it'll prompt for the API key above.
 
 Data (the SQLite database and, if generated, the API key) lives in the `taloni-data` named
 volume, mounted at `/home/node/.taloni`. It survives `docker compose down`; `docker compose down
