@@ -19,6 +19,11 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
+# Luodaan tietokantahakemisto ja asetetaan omistajuus ENNEN node-käyttäjään vaihtoa — muuten
+# Dockerin nimetty volyymi luodaan juurikäyttäjän omistamana eikä node-käyttäjä (uid 1000) pysty
+# kirjoittamaan sinne (initDb() epäonnistuu: "unable to open database file").
+RUN mkdir -p /home/node/.taloni && chown -R node:node /home/node/.taloni
+
 # Käytetään node-käyttäjää (uid 1000, jo olemassa virallisessa node-imagessa) — ei rootina ajoa.
 USER node
 ENV HOME=/home/node
