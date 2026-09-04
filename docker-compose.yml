@@ -28,6 +28,11 @@ services:
       - taloni
     environment:
       DOMAIN: ${DOMAIN:-localhost}
+      # Second site (StraightUpProgress, a separate project sharing this same
+      # instance) — reverse-proxied to a container from a different compose
+      # project, reachable only because both join the external `frontdoor`
+      # network below. See ../StraightUpProgress/DEPLOYMENT.md.
+      SUP_DOMAIN: ${SUP_DOMAIN:-sup.localhost}
     ports:
       - '80:80'
       - '443:443'
@@ -35,8 +40,15 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+    networks:
+      - default
+      - frontdoor
 
 volumes:
   taloni-data:
   caddy-data:
   caddy-config:
+
+networks:
+  frontdoor:
+    external: true

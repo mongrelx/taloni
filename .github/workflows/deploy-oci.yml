@@ -10,6 +10,8 @@
 # Optional secrets:
 #   OCI_DEPLOY_PATH    — remote directory to deploy into (default: /opt/taloni)
 #   OCI_DOMAIN         — if set, deploys behind Caddy with automatic Let's Encrypt TLS on 443
+#   SUP_DOMAIN         — hostname for the StraightUpProgress site sharing this same Caddy
+#                        (separate project/repo — see ../StraightUpProgress/DEPLOYMENT.md)
 #
 # The instance needs Docker + the Docker Compose plugin installed and the deploy user in the
 # `docker` group. See DEPLOYMENT.md for the one-time server setup.
@@ -56,6 +58,7 @@ jobs:
       TALONI_API_KEY: ${{ secrets.TALONI_API_KEY }}
       OCI_DEPLOY_PATH: ${{ secrets.OCI_DEPLOY_PATH }}
       OCI_DOMAIN: ${{ secrets.OCI_DOMAIN }}
+      SUP_DOMAIN: ${{ secrets.SUP_DOMAIN }}
     steps:
       - name: Check required secrets are set
         id: check
@@ -99,6 +102,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key "$OCI_SSH_USER@$OCI_HOST" "cat > $DEPLOY_PATH/.env" <<EOF
           TALONI_API_KEY=$TALONI_API_KEY
           DOMAIN=$OCI_DOMAIN
+          SUP_DOMAIN=$SUP_DOMAIN
           EOF
 
       - name: Deploy
@@ -109,6 +113,7 @@ jobs:
           [ -n "$OCI_DOMAIN" ] && PROFILE_FLAG="--profile proxy"
           ssh -i ~/.ssh/deploy_key "$OCI_SSH_USER@$OCI_HOST" "
             set -e
+            docker network create frontdoor 2>/dev/null || true
             cd $DEPLOY_PATH
             echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
             docker compose pull taloni

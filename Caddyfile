@@ -1,3 +1,10 @@
 {$DOMAIN:localhost} {
 	reverse_proxy taloni:3000
 }
+
+# StraightUpProgress (separate project, same OCI instance) — see its own
+# DEPLOYMENT.md. Distinct default host so this doesn't collide with the
+# block above when neither DOMAIN nor SUP_DOMAIN is set.
+{$SUP_DOMAIN:sup.localhost} {
+	reverse_proxy straightupprogress:80
+}

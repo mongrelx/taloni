@@ -80,6 +80,15 @@ uncomment `ports: - '3000:3000'` on the `taloni` service and run `docker compose
 without the `proxy` profile — but then the API key travels unencrypted, so don't do this for
 anything reachable outside a trusted network.
 
+### Sharing this Caddy with another project
+
+This Caddy instance also fronts the **StraightUpProgress** project on the same OCI compute
+instance — a second site block in `Caddyfile` reverse-proxies `SUP_DOMAIN` to that project's
+container. It's reachable only because both `caddy` here and StraightUpProgress's `app` service
+join a shared external Docker network called `frontdoor` (created once with
+`docker network create frontdoor`; the deploy workflow does this automatically, idempotently,
+whichever project deploys first). See `../StraightUpProgress/DEPLOYMENT.md` for that side of it.
+
 Also remember to open the ports you're actually using — both the instance's own firewall (e.g.
 `iptables`/`ufw`) and, on OCI, the subnet's Security List / any attached Network Security Group
 all need a rule, or traffic gets silently dropped before it reaches Docker at all. That's three
@@ -116,6 +125,7 @@ Settings → Secrets and variables → Actions → New repository secret:
 | `TALONI_API_KEY` | yes | The key the deployed server will require |
 | `OCI_DEPLOY_PATH` | no | Remote directory (default `/opt/taloni`) |
 | `OCI_DOMAIN` | no | If set, deploys with the Caddy TLS profile instead of plain HTTP on 3000 |
+| `SUP_DOMAIN` | no | Hostname for the StraightUpProgress site, a separate project sharing this same Caddy — see its own `DEPLOYMENT.md` |
 
 ### 3. Deploy
 
