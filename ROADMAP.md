@@ -103,7 +103,7 @@ Kaikki alla olevat ovat avoimia GitHub-issueita (mongrelx/taloni), ei vielä aik
 Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla.
 
 - [ ] [#17](https://github.com/mongrelx/taloni/issues/17) — PostgreSQL support
-- [ ] [#18](https://github.com/mongrelx/taloni/issues/18) — Deployment to Oracle Cloud Infrastructure (OCI)
+- [~] [#18](https://github.com/mongrelx/taloni/issues/18) — Deployment to OCI (osittain: Dockerfile, docker-compose (+ valinnainen Caddy-TLS), GitHub Actions -käyttöönotto toteutettu — ks. DEPLOYMENT.md; hallittu PostgreSQL vielä auki (sidoksissa #17:ään), OCI Vault/Container Instances korvattu yksinkertaisemmilla ratkaisuilla)
 - [~] [#20](https://github.com/mongrelx/taloni/issues/20) — Image attachments & photo documentation (osittain: `doc_type: 'photo'`, `linked_type: 'renovation'|'task'`, `taloni gallery` HTML-vienti toteutettu; pienoiskuvat ja TUI-kuvagalleria/-linkitysvalitsin vielä auki)
 - [ ] [#21](https://github.com/mongrelx/taloni/issues/21) — Google Maps integration
 - [ ] [#22](https://github.com/mongrelx/taloni/issues/22) — Utility company integrations (water & electricity)
@@ -114,7 +114,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [~] [#29](https://github.com/mongrelx/taloni/issues/29) — Data import & export (osittain: `taloni export-json` ja `taloni import properties|transactions <csv>` toteutettu; muista työkaluista tuonti ja PostgreSQL-migraatio-opas vielä auki)
 - [ ] [#30](https://github.com/mongrelx/taloni/issues/30) — Offline-first & sync support
 - [ ] [#31](https://github.com/mongrelx/taloni/issues/31) — Multi-language support (Swedish, English)
-- [ ] [#32](https://github.com/mongrelx/taloni/issues/32) — REST API for third-party integrations
+- [~] [#32](https://github.com/mongrelx/taloni/issues/32) — REST API (osittain: `taloni serve` — API-avain, CRUD kaikille 18 resurssille toteutettu; webhookit vielä auki)
 - [ ] [#33](https://github.com/mongrelx/taloni/issues/33) — Cloud backup & disaster recovery
 - [ ] [#42](https://github.com/mongrelx/taloni/issues/42) — Omarchy plugin/UI integration (someday/maybe — native Omarchy companion UI, not scoped yet)
 
