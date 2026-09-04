@@ -10,12 +10,43 @@ const submitting = ref(false)
 const editingId = ref<number | null>(null)
 const showForm = ref(false)
 
+const SAUNA_TYPES: Property['sauna_type'][] = ['none', 'wood', 'electric']
+const SAUNA_LABELS: Record<Property['sauna_type'], string> = {
+  none: 'Ei saunaa',
+  wood: '🔥 Puukiuas',
+  electric: '⚡ Sähkökiuas',
+}
+const BIOWASTE_OPTIONS: Property['biowaste'][] = [
+  'collection',
+  'home_compost',
+  'shared',
+  'none',
+]
+const BIOWASTE_LABELS: Record<Property['biowaste'], string> = {
+  collection: 'Kunnan keräys',
+  home_compost: 'Kotikompostointi',
+  shared: 'Yhteiskeräyspiste',
+  none: 'Ei biojätettä',
+}
+
 const emptyForm = () => ({
   name: '',
   kiinteistotunnus: '',
   water_source: 'well' as 'well' | 'mains',
   build_year: new Date().getFullYear(),
   location: 'Suomi',
+  sauna_type: 'none' as Property['sauna_type'],
+  sauna_info: '',
+  electricity_fuse: '',
+  water_connection: '',
+  waste_provider: '',
+  waste_bin: '',
+  waste_interval: '',
+  biowaste: 'collection' as Property['biowaste'],
+  compost_registered: 0 as 0 | 1,
+  compost_reg_date: '',
+  property_tax: 0,
+  road_fee: 0,
 })
 const form = reactive(emptyForm())
 
@@ -46,6 +77,18 @@ function startEdit(p: Property) {
     water_source: p.water_source,
     build_year: p.build_year,
     location: p.location,
+    sauna_type: p.sauna_type,
+    sauna_info: p.sauna_info,
+    electricity_fuse: p.electricity_fuse,
+    water_connection: p.water_connection,
+    waste_provider: p.waste_provider,
+    waste_bin: p.waste_bin,
+    waste_interval: p.waste_interval,
+    biowaste: p.biowaste,
+    compost_registered: p.compost_registered,
+    compost_reg_date: p.compost_reg_date,
+    property_tax: p.property_tax,
+    road_fee: p.road_fee,
   })
   showForm.value = true
 }
@@ -63,7 +106,7 @@ async function submitForm() {
       await api.post('/api/properties', { ...form })
     } else {
       // updateProperty() kirjoittaa koko rivin — säilytetään alkuperäisen tietueen
-      // muut kentät (sauna, jätehuolto, energiatodistus ym.) muuttumattomina.
+      // energiatodistus-kentät (ei vielä muokattavissa web-UI:sta) muuttumattomina.
       const existing = properties.value.find((p) => p.id === editingId.value)
       await api.put(`/api/properties/${editingId.value}`, {
         ...existing,
@@ -116,6 +159,40 @@ async function removeProperty(p: Property) {
       </select>
       <input v-model.number="form.build_year" type="number" placeholder="Rakennusvuosi" />
       <input v-model="form.location" placeholder="Sijainti" />
+      <select v-model="form.sauna_type">
+        <option v-for="t in SAUNA_TYPES" :key="t" :value="t">{{ SAUNA_LABELS[t] }}</option>
+      </select>
+      <input v-model="form.sauna_info" placeholder="Saunan lisätiedot" />
+      <input v-model="form.electricity_fuse" placeholder="Sähköliittymä (pääsulake)" />
+      <input v-model="form.water_connection" placeholder="Vesiliittymä" />
+      <input v-model="form.waste_provider" placeholder="Jätehuoltoyhtiö" />
+      <input v-model="form.waste_bin" placeholder="Sekajäteastian koko" />
+      <input v-model="form.waste_interval" placeholder="Tyhjennysväli" />
+      <select v-model="form.biowaste">
+        <option v-for="b in BIOWASTE_OPTIONS" :key="b" :value="b">{{ BIOWASTE_LABELS[b] }}</option>
+      </select>
+      <label v-if="form.biowaste === 'home_compost'" class="check">
+        <input v-model="form.compost_registered" type="checkbox" true-value="1" false-value="0" />
+        Kompostointi-ilmoitus tehty
+      </label>
+      <input
+        v-if="form.biowaste === 'home_compost' && form.compost_registered"
+        v-model="form.compost_reg_date"
+        type="date"
+        title="Ilmoituspäivä"
+      />
+      <input
+        v-model.number="form.property_tax"
+        type="number"
+        step="0.01"
+        placeholder="Kiinteistövero €/v"
+      />
+      <input
+        v-model.number="form.road_fee"
+        type="number"
+        step="0.01"
+        placeholder="Tiekunta/yksityistiemaksu €/v"
+      />
       <div class="form-actions">
         <button class="btn" type="submit" :disabled="submitting">
           {{ editingId === null ? 'Lisää' : 'Tallenna' }}
@@ -186,6 +263,18 @@ h2 {
 .form-actions {
   display: flex;
   gap: 0.5rem;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  flex: 0;
+  white-space: nowrap;
+}
+.check input {
+  width: auto;
 }
 .hint {
   color: var(--text-dim);

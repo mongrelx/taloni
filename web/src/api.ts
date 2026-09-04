@@ -244,6 +244,24 @@ export interface WaterTest {
   notes: string
 }
 
+export interface Firewood {
+  id: number
+  property_id: number
+  wood_type: string
+  volume: number
+  unit: 'pino-m³' | 'motti' | 'irto-m³'
+  location: string
+  drying_status: 'fresh' | 'drying' | 'ready'
+  stacked_date: string
+  notes: string
+}
+
+export interface CompostingRow {
+  property_id: number
+  propertyName: string
+  assessment: { level: 'ok' | 'warning'; message: string } | null
+}
+
 export interface AlertRow {
   date: string
   daysUntil: number

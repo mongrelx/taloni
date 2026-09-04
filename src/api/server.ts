@@ -202,6 +202,20 @@ export function createApiServer(opts: ServerOptions) {
           )
           return
         }
+        // Kompostoinnin ilmoitusvelvollisuus (jätelaki 646/2011) — sama assessComposting() jota
+        // TUI käyttää; palauttaa vain kiinteistöt joilla on kotikompostointi (muille assessment on null).
+        if (report === 'composting') {
+          const rows = db
+            .getProperties()
+            .map((p) => ({
+              property_id: p.id,
+              propertyName: p.name,
+              assessment: db.assessComposting(p),
+            }))
+            .filter((r) => r.assessment !== null)
+          sendJson(res, 200, rows)
+          return
+        }
         sendJson(res, 404, {
           error: `Tuntematon raportti: ${report ?? ''}`,
           available: [
@@ -210,6 +224,7 @@ export function createApiServer(opts: ServerOptions) {
             'renovations',
             'energy',
             'wastewater',
+            'composting',
           ],
         })
         return
