@@ -148,6 +148,24 @@ export interface Utility {
   provider: string
 }
 
+export interface Tool {
+  id: number
+  name: string
+  status: 'working' | 'needs_repair' | 'lost'
+  location: string
+  purchase_date: string
+}
+
+export interface Insurance {
+  id: number
+  property_id: number
+  policy_name: string
+  provider: string
+  premium: number
+  renewal_date: string
+  coverage_details: string
+}
+
 export interface AlertRow {
   date: string
   daysUntil: number

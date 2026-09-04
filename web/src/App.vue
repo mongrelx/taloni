@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { clearApiKey, getApiKey } from './api'
 import AlertsTab from './components/AlertsTab.vue'
 import FinanceTab from './components/FinanceTab.vue'
+import InsuranceTab from './components/InsuranceTab.vue'
 import LoginScreen from './components/LoginScreen.vue'
 import PortfolioTab from './components/PortfolioTab.vue'
 import PropertiesTab from './components/PropertiesTab.vue'
@@ -14,6 +15,7 @@ type Tab =
   | 'tasks'
   | 'finance'
   | 'utilities'
+  | 'insurance'
   | 'alerts'
   | 'portfolio'
 
@@ -25,6 +27,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'tasks', label: '📋 Tehtävät' },
   { id: 'finance', label: '💰 Talous & Korjaukset' },
   { id: 'utilities', label: '🔌 Sähkö & Kulutus' },
+  { id: 'insurance', label: '🛡 Vakuutus & Kalusto' },
   { id: 'alerts', label: '⏰ Hälytykset' },
   { id: 'portfolio', label: '📊 Salkku' },
 ]
@@ -60,6 +63,7 @@ function logout() {
       <TasksTab v-else-if="tab === 'tasks'" />
       <FinanceTab v-else-if="tab === 'finance'" />
       <UtilitiesTab v-else-if="tab === 'utilities'" />
+      <InsuranceTab v-else-if="tab === 'insurance'" />
       <AlertsTab v-else-if="tab === 'alerts'" />
       <PortfolioTab v-else-if="tab === 'portfolio'" />
     </main>
