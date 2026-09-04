@@ -47,6 +47,7 @@ import {
   validateTaskInput,
   validateTransactionInput,
 } from './validate.js'
+import { fetchWeather, formatWeather, placeFromLocation } from './weather.js'
 
 // 1. Node Version Guard
 const [major, minor] = process.versions.node.split('.').map(Number)
@@ -384,6 +385,43 @@ program
     if (rows.some((r) => r.daysUntil < 0)) process.exit(1)
   })
 
+// Command: weather — ajantasainen sää FMI:n avoimesta datasta (issue #27, ainoa ulkoinen verkkokutsu)
+program
+  .command('weather')
+  .description(
+    'Fetch current weather from FMI open data (Finnish Meteorological Institute) — this command makes a network request; nothing else in taloni does',
+  )
+  .argument(
+    '[place]',
+    "Place name (default: derived from --property-id's location)",
+  )
+  .option(
+    '-i, --property-id <id>',
+    "Use this property's location when [place] is omitted",
+    '1',
+  )
+  .action(async (placeArg, options) => {
+    let place: string = placeArg
+    if (!place) {
+      const propId = parseInt(options.propertyId, 10) || 1
+      const prop = getProperties().find((p) => p.id === propId)
+      if (!prop) {
+        process.stderr.write(
+          `Virheellinen syöte:\n  - Tuntematon property-id: ${options.propertyId}\n`,
+        )
+        process.exit(1)
+      }
+      place = placeFromLocation(prop.location)
+    }
+    try {
+      const reading = await fetchWeather(place)
+      console.log(formatWeather(reading))
+    } catch (e) {
+      process.stderr.write(`${(e as Error).message}\n`)
+      process.exit(1)
+    }
+  })
+
 // Command: export — kirjoittaa taulukot CSV-tiedostoiksi
 program
   .command('export')
@@ -480,4 +518,4 @@ program
     console.log(`Varmuuskopio luotu: ${dest}`)
   })
 
-program.parse(process.argv)
+program.parseAsync(process.argv)
