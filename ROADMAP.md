@@ -5,9 +5,10 @@ mökkien hallintaan** — ei pelkkä yleinen kiinteistörekisteri, vaan työkalu
 suomalaisen mökkielämän lakisääteiset velvoitteet ja vuodenkierron.
 
 Nykytila kattaa: kiinteistöt, tehtävät, remontit, tulot/menot, kulutuslaskut, kaluston ja
-vakuutukset. Alla puuttuvat osa-alueet vaiheistettuna. Jokainen vaihe on itsenäisesti
-julkaistavissa, ja kaikki skeemamuutokset ajetaan `migrations[]`-taulukon kautta niin,
-että olemassa olevat tietokannat päivittyvät automaattisesti.
+vakuutukset — TUI:ssa ja nyt myös web-UI:ssa (`taloni serve`) täydellä CRUD-kattavuudella
+kaikille 9 välilehdelle / 18 resurssille. Alla puuttuvat osa-alueet vaiheistettuna. Jokainen
+vaihe on itsenäisesti julkaistavissa, ja kaikki skeemamuutokset ajetaan `migrations[]`-
+taulukon kautta niin, että olemassa olevat tietokannat päivittyvät automaattisesti.
 
 ---
 
@@ -107,7 +108,6 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [~] [#20](https://github.com/mongrelx/taloni/issues/20) — Image attachments & photo documentation (osittain: `doc_type: 'photo'`, `linked_type: 'renovation'|'task'`, `taloni gallery` HTML-vienti toteutettu; pienoiskuvat ja TUI-kuvagalleria/-linkitysvalitsin vielä auki)
 - [ ] [#21](https://github.com/mongrelx/taloni/issues/21) — Google Maps integration
 - [ ] [#22](https://github.com/mongrelx/taloni/issues/22) — Utility company integrations (water & electricity)
-- [~] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard (seuranta-issue; osittain: Vue-pohjainen web-UI toteutettu, tarjoillaan `taloni serve`:stä — kiinteistöt (täysi CRUD), tehtävät (täysi CRUD), hälytykset, salkku. Loput TUI:n 9 välilehden mukaisesta CRUD-kattavuudesta pilkottu 8 alaissueeksi, joista valmiit: [x] [#43](https://github.com/mongrelx/taloni/issues/43) kiinteistö-CRUD + tehtävien muokkaus/poisto, [x] [#44](https://github.com/mongrelx/taloni/issues/44) Talous & Korjaukset, [x] [#45](https://github.com/mongrelx/taloni/issues/45) Sähkö & Kulutus, [x] [#46](https://github.com/mongrelx/taloni/issues/46) Vakuutus & Kalusto, [x] [#47](https://github.com/mongrelx/taloni/issues/47) Määräaikaishuolto, [x] [#48](https://github.com/mongrelx/taloni/issues/48) Polttopuu & Sauna, [x] [#49](https://github.com/mongrelx/taloni/issues/49) Vuokraus & Kausi, [ ] [#50](https://github.com/mongrelx/taloni/issues/50) Yhteystiedot & Arkisto)
 - [~] [#24](https://github.com/mongrelx/taloni/issues/24) — Notification system (osittain: `taloni alerts [--days N]` digest + exit-koodi toteutettu; sähköposti/SMS-lähetys vielä auki, tarvitsee palveluntarjoajapäätöksen)
 - [~] [#25](https://github.com/mongrelx/taloni/issues/25) — Renovation cost estimation & budget tracking (osittain: kulujen linkitys remonttiin + `taloni renovations` budjettivertailu toteutettu; materiaali/työkustannusarviot ja historiadata vielä auki)
 - [~] [#27](https://github.com/mongrelx/taloni/issues/27) — Weather & seasonal integration (osittain: `taloni weather [paikka]` — FMI-avoin data, pakkasvaroitukset toteutettu; ennustepohjaiset tehtäväehdotukset ja lumikuorman seuranta vielä auki)
@@ -117,11 +117,11 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [~] [#32](https://github.com/mongrelx/taloni/issues/32) — REST API (osittain: `taloni serve` — API-avain, CRUD kaikille 18 resurssille toteutettu; webhookit vielä auki)
 - [ ] [#33](https://github.com/mongrelx/taloni/issues/33) — Cloud backup & disaster recovery
 - [ ] [#42](https://github.com/mongrelx/taloni/issues/42) — Omarchy plugin/UI integration (someday/maybe — native Omarchy companion UI, not scoped yet)
-- [ ] [#50](https://github.com/mongrelx/taloni/issues/50) — Web UI: Yhteystiedot & Arkisto -välilehti (osa #23:a)
 
 ### Ylläpito (valmiit)
 
 - [x] [#41](https://github.com/mongrelx/taloni/issues/41) — Refactor: split `db.ts` into `src/db/` domain modules (types, schema, migrations, seed, repositories/*)
+- [x] [#23](https://github.com/mongrelx/taloni/issues/23) — Web dashboard: Vue-pohjainen web-UI (`taloni serve`) kattaa nyt kaikki TUI:n 9 välilehteä / 18 resurssia täydellä CRUD:lla, pilkottu ja toteutettu 8 alaissueena: [#43](https://github.com/mongrelx/taloni/issues/43)–[#50](https://github.com/mongrelx/taloni/issues/50). Mobiilioptimointi jää myöhemmäksi, ei osa alkuperäistä laajuutta.
 - [x] [#43](https://github.com/mongrelx/taloni/issues/43) — Web UI: property CRUD + task edit/delete (osa #23:a) — Kiinteistöt- ja Tehtävät-välilehdille lisää/muokkaa/poista-lomakkeet
 - [x] [#44](https://github.com/mongrelx/taloni/issues/44) — Web UI: Talous & Korjaukset -välilehti (osa #23:a) — remontit budjettipalkilla + taloustapahtumat, molemmat täysi CRUD
 - [x] [#45](https://github.com/mongrelx/taloni/issues/45) — Web UI: Sähkö & Kulutus -välilehti (osa #23:a) — kulutuslaskujen CRUD, ryhmittely laskutuskaudella sähkö- ja kokonaissummin
@@ -129,6 +129,7 @@ Päivitetään manuaalisesti; katso ajantasainen tila `gh issue list`-komennolla
 - [x] [#47](https://github.com/mongrelx/taloni/issues/47) — Web UI: Määräaikaishuolto-välilehti (osa #23:a) — tulisijat/jätevesi/lämmitys/kaivovesi CRUD, jätevesiarvio (`assessWastewater`), kertanuohous
 - [x] [#48](https://github.com/mongrelx/taloni/issues/48) — Web UI: Polttopuu & Sauna -välilehti (osa #23:a) — polttopuu-CRUD tilavuuskoosteineen, sauna/jätehuolto/vero-kentät Kiinteistöt-lomakkeelle, kompostointi-ilmoitusarvio (`assessComposting`)
 - [x] [#49](https://github.com/mongrelx/taloni/issues/49) — Web UI: Vuokraus & Kausi -välilehti (osa #23:a) — varausten CRUD kuukausikalenterina, vuokratulon kirjaus taloustapahtumaksi, Kevätavaus/Syyssulku-tarkistuslistat
+- [x] [#50](https://github.com/mongrelx/taloni/issues/50) — Web UI: Yhteystiedot & Arkisto -välilehti (osa #23:a) — yhteystiedot (globaali) + asiakirjat linkitysvalitsimineen + mittarilukemat kulutustrendillä, kaikki täysi CRUD; `GET /api/documents/:id/file` tiedoston avaamiseen selaimessa
 - [x] [#26](https://github.com/mongrelx/taloni/issues/26) — Energy efficiency tracking: `taloni energy [vuosi]` — energiatodistus, kWh/m²/v, parannusehdotukset (build_year + lämmitysmuoto)
 - [x] [#28](https://github.com/mongrelx/taloni/issues/28) — Property portfolio overview & comparison: `taloni portfolio [vuosi]` — vertailu, käyttöaste, ROI, arvonseuranta ajan yli (`add-valuation`)
 - [x] Korjattu Ink `<Text>`-komponentin virheelliset layout-propsit (`width`/`align`/`marginTop`/`marginY`) siirtämällä ne `<Box>`-kääreeseen — CI:n `tsc --noEmit`-vaihe vihreä ensimmäistä kertaa (ei liittynyt yksittäiseen issueen, löytyi #41:n sivutuotteena)
