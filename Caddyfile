@@ -8,3 +8,10 @@
 {$SUP_DOMAIN:sup.localhost} {
 	reverse_proxy straightupprogress:80
 }
+
+# StraightUpBeats (separate project, same OCI instance) — see its own
+# DEPLOYMENT.md. Distinct default host so this doesn't collide with the
+# blocks above when neither DOMAIN nor SUB_DOMAIN is set.
+{$SUB_DOMAIN:sub.localhost} {
+	reverse_proxy straightupbeats:80
+}
