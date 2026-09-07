@@ -1,53 +1,27 @@
-# Taloni
+# taloni (shared base infra)
 
-Interactive TUI dashboard for managing Finnish log houses and properties.
-All user-facing text is in Finnish.
+Not an app repo. This holds the shared Caddy reverse-proxy "frontdoor" for the `StraightUp*`
+project family on one OCI compute instance — see README.md and DEPLOYMENT.md.
 
-## Tech Stack
+The app that used to live here (Finnish log-house/property management, TUI + web) moved to
+[StraightUpHouses](https://github.com/mongrelx/StraightUpHouses) with full git history carried
+over. Its own CLAUDE.md still documents that app's tech stack/architecture/conventions.
 
-- TypeScript + React + Ink (React for terminal UI)
-- Commander for CLI subcommands
-- Node.js native SQLite (`node:sqlite`) — requires Node >= 22.5.0
-- tsup for bundling, tsx for dev mode
-- Node.js built-in test runner (`node:test`)
+## Files
 
-## Commands
+- `Caddyfile` — one site block per sibling project, each behind its own `*_DOMAIN` env var.
+- `docker-compose.yml` — single `caddy` service on the external `frontdoor` network.
+- `.github/workflows/deploy-oci.yml` — syncs the two files above to the OCI instance and
+  restarts Caddy. No image build — Caddy is a stock public image.
 
-- `npm run dev` — start TUI in dev mode
-- `npm run build` — bundle to dist/
-- `npm start` — run compiled CLI
-- `npm test` — run all tests (validation, db layer, migrations, reports)
-- `npm run lint` — check code style and lint rules with Biome
-- `npm run lint:fix` — auto-fix lint and formatting issues with Biome
+## Adding a new sibling project
 
-## Architecture
-
-- `src/cli.ts` — entry point, Commander setup, TUI launch, CLI subcommands
-- `src/db.ts` — SQLite schema, migrations, seed data, all CRUD operations
-- `src/report.ts` — annual reports, rental income reports, CSV export
-- `src/validate.ts` — input validation (pure functions)
-- `src/ui/Dashboard.tsx` — main Ink TUI component (9 tabs)
-- `test/` — tests using `node:test` + `node:assert/strict`
-
-## Database
-
-- Stored at `~/.taloni/taloni.db`
-- Migrations run via `PRAGMA user_version` — add new migrations to the `migrations[]` array in db.ts
-- Seed data runs only on fresh databases (empty properties table)
-- Foreign keys enabled with `PRAGMA foreign_keys = ON` and `ON DELETE CASCADE`
-
-## Key Domain Concepts
-
-- Properties have Finnish `kiinteistotunnus` (e.g. 405-412-1-23)
-- Tasks support recurrence (monthly/quarterly/yearly/every_3_years) — completing a recurring task auto-creates the next occurrence
-- Wastewater compliance assessment follows Finnish regulation (VNa 157/2017)
-- Composting notification follows waste act (jätelaki 646/2011)
-- Fireplaces require annual sweeping (lakisääteinen nuohous)
-
-## Conventions
-
-- All UI strings, comments, and user messages in Finnish
-- Dates in ISO format (YYYY-MM-DD)
-- Currency in EUR
-- Use `db.prepare()` for parameterized queries (never string interpolation for user data)
-- New schema changes: add migration function to `migrations[]` array, never modify existing migrations
+1. New project's own `docker-compose.yml` defines its app service on the external `frontdoor`
+   network, with an explicit `container_name`, no host ports.
+2. Add a site block here in `Caddyfile`: `{$FOO_DOMAIN:foo.localhost} { reverse_proxy
+   <container_name>:<port> }`.
+3. Add the matching env var to this repo's `docker-compose.yml` `caddy` service and to
+   `.github/workflows/deploy-oci.yml`'s secrets/env passthrough.
+4. Add a `FOO_DOMAIN` secret here (this repo) and the new project's own `OCI_HOST`/
+   `OCI_SSH_USER`/`OCI_SSH_KEY` (same values as this repo's — GitHub secrets are write-only, so
+   re-enter them rather than trying to copy via `gh`).

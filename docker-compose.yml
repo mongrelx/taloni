@@ -1,39 +1,23 @@
-# Tuotantoajo taloni-REST-API:lle (issue #18/#32). Katso DEPLOYMENT.md.
+# Shared base-infra for the StraightUp* projects on this OCI instance: a single Caddy
+# reverse-proxy "frontdoor" providing automatic Let's Encrypt TLS (works with a free
+# sslip.io hostname — see DEPLOYMENT.md) for every sibling app, each in its own repo
+# joining the external `frontdoor` network below.
 #
-# Caddyn kautta (automaattinen Let's Encrypt-TLS, kun DOMAIN on oikea verkkotunnus — myös
-# sslip.io-osoite kelpaa, esim. "203-0-113-1.sslip.io" ilman omaa domainia):
-#   DOMAIN=esimerkki.fi TALONI_API_KEY=... docker compose --profile proxy up -d
+#   DOMAIN=... OCI_DOMAIN=... SUP_DOMAIN=... SUB_DOMAIN=... docker compose up -d
 #
-# Ilman TLS:ää / suoraan porttiin 3000 (kehitys/testaus — HUOM: API-avain kulkee salaamattomana):
-#   ota "ports: - '3000:3000'" alta käyttöön ja aja: docker compose up -d taloni
+# This repo used to run the taloni app itself alongside Caddy; that app moved to its
+# own repo (github.com/mongrelx/StraightUpHouses) and joins `frontdoor` like the others.
 
 services:
-  taloni:
-    build: .
-    image: ghcr.io/mongrelx/taloni:latest
-    restart: unless-stopped
-    environment:
-      TALONI_API_KEY: ${TALONI_API_KEY:?Aseta TALONI_API_KEY (esim. .env-tiedostossa)}
-      TALONI_API_HOST: 0.0.0.0
-      TALONI_API_PORT: 3000
-    volumes:
-      - taloni-data:/home/node/.taloni
-    # - '3000:3000'  # avaa vain jos et käytä Caddy/TLS-profiilia (ks. yllä)
-
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
-    profiles: ['proxy']
-    depends_on:
-      - taloni
     environment:
       DOMAIN: ${DOMAIN:-localhost}
-      # Second site (StraightUpProgress, a separate project sharing this same
-      # instance) — reverse-proxied to a container from a different compose
-      # project, reachable only because both join the external `frontdoor`
-      # network below. See ../StraightUpProgress/DEPLOYMENT.md.
+      # StraightUpHouses (formerly the app in this repo — see Caddyfile)
+      # SUP_DOMAIN / SUB_DOMAIN: sibling projects sharing this same Caddy instance —
+      # see their own DEPLOYMENT.md (StraightUpProgress / StraightUpBeats respectively).
       SUP_DOMAIN: ${SUP_DOMAIN:-sup.localhost}
-      # Third site (StraightUpBeats, same pattern). See ../StraightUpBeats/DEPLOYMENT.md.
       SUB_DOMAIN: ${SUB_DOMAIN:-sub.localhost}
     ports:
       - '80:80'
@@ -43,11 +27,9 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     networks:
-      - default
       - frontdoor
 
 volumes:
-  taloni-data:
   caddy-data:
   caddy-config:
 

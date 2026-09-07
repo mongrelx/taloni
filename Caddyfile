@@ -1,5 +1,8 @@
+# StraightUpHouses (formerly the app that used to live in this repo — split out to
+# github.com/mongrelx/StraightUpHouses, which now joins this Caddy's `frontdoor`
+# network the same way the sibling projects below do). See its DEPLOYMENT.md.
 {$DOMAIN:localhost} {
-	reverse_proxy taloni:3000
+	reverse_proxy straightuphouses:3000
 }
 
 # StraightUpProgress (separate project, same OCI instance) — see its own
