@@ -33,6 +33,8 @@ services:
       # project, reachable only because both join the external `frontdoor`
       # network below. See ../StraightUpProgress/DEPLOYMENT.md.
       SUP_DOMAIN: ${SUP_DOMAIN:-sup.localhost}
+      # Third site (StraightUpBeats, same pattern). See ../StraightUpBeats/DEPLOYMENT.md.
+      SUB_DOMAIN: ${SUB_DOMAIN:-sub.localhost}
     ports:
       - '80:80'
       - '443:443'

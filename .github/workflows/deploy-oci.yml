@@ -12,6 +12,8 @@
 #   OCI_DOMAIN         — if set, deploys behind Caddy with automatic Let's Encrypt TLS on 443
 #   SUP_DOMAIN         — hostname for the StraightUpProgress site sharing this same Caddy
 #                        (separate project/repo — see ../StraightUpProgress/DEPLOYMENT.md)
+#   SUB_DOMAIN         — hostname for the StraightUpBeats site sharing this same Caddy
+#                        (separate project/repo — see ../StraightUpBeats/DEPLOYMENT.md)
 #
 # The instance needs Docker + the Docker Compose plugin installed and the deploy user in the
 # `docker` group. See DEPLOYMENT.md for the one-time server setup.
@@ -59,6 +61,7 @@ jobs:
       OCI_DEPLOY_PATH: ${{ secrets.OCI_DEPLOY_PATH }}
       OCI_DOMAIN: ${{ secrets.OCI_DOMAIN }}
       SUP_DOMAIN: ${{ secrets.SUP_DOMAIN }}
+      SUB_DOMAIN: ${{ secrets.SUB_DOMAIN }}
     steps:
       - name: Check required secrets are set
         id: check
@@ -103,6 +106,7 @@ jobs:
           TALONI_API_KEY=$TALONI_API_KEY
           DOMAIN=$OCI_DOMAIN
           SUP_DOMAIN=$SUP_DOMAIN
+          SUB_DOMAIN=$SUB_DOMAIN
           EOF
 
       - name: Deploy
