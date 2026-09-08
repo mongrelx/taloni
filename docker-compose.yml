@@ -35,6 +35,8 @@ services:
       SUP_DOMAIN: ${SUP_DOMAIN:-sup.localhost}
       # Third site (StraightUpBeats, same pattern). See ../StraightUpBeats/DEPLOYMENT.md.
       SUB_DOMAIN: ${SUB_DOMAIN:-sub.localhost}
+      # Fourth site (Kuulutin, same pattern). See ../Kuulutin/DEPLOYMENT.md.
+      KUL_DOMAIN: ${KUL_DOMAIN:-kul.localhost}
     ports:
       - '80:80'
       - '443:443'

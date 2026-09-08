@@ -15,3 +15,10 @@
 {$SUB_DOMAIN:sub.localhost} {
 	reverse_proxy straightupbeats:80
 }
+
+# Kuulutin (separate project, same OCI instance) — see its own DEPLOYMENT.md.
+# Distinct default host so this doesn't collide with the blocks above when
+# neither DOMAIN nor KUL_DOMAIN is set.
+{$KUL_DOMAIN:kul.localhost} {
+	reverse_proxy kuulutin:80
+}
