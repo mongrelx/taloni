@@ -1,24 +1,19 @@
-{$DOMAIN:localhost} {
-	reverse_proxy taloni:3000
-}
-
 # StraightUpProgress (separate project, same OCI instance) — see its own
-# DEPLOYMENT.md. Distinct default host so this doesn't collide with the
-# block above when neither DOMAIN nor SUP_DOMAIN is set.
+# DEPLOYMENT.md.
 {$SUP_DOMAIN:sup.localhost} {
 	reverse_proxy straightupprogress:80
 }
 
 # StraightUpBeats (separate project, same OCI instance) — see its own
 # DEPLOYMENT.md. Distinct default host so this doesn't collide with the
-# blocks above when neither DOMAIN nor SUB_DOMAIN is set.
+# block above when neither SUP_DOMAIN nor SUB_DOMAIN is set.
 {$SUB_DOMAIN:sub.localhost} {
 	reverse_proxy straightupbeats:80
 }
 
 # Kuulutin (separate project, same OCI instance) — see its own DEPLOYMENT.md.
 # Distinct default host so this doesn't collide with the blocks above when
-# neither DOMAIN nor KUL_DOMAIN is set.
+# neither SUP_DOMAIN, SUB_DOMAIN, nor KUL_DOMAIN is set.
 {$KUL_DOMAIN:kul.localhost} {
 	reverse_proxy kuulutin:80
 }

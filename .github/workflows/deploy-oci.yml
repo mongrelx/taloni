@@ -1,21 +1,19 @@
-# Builds the taloni API image, pushes it to GHCR, then deploys it to an OCI compute instance
-# over SSH (docker compose pull && up). Inert until the required secrets exist — see below.
+# Deploys the shared Caddy frontdoor to an OCI compute instance over SSH (docker compose pull
+# && up). No image to build here — Caddy runs the stock `caddy:2-alpine` image; this workflow
+# just ships docker-compose.yml + Caddyfile and starts it. Inert until the required secrets
+# exist — see below.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   OCI_HOST          — the compute instance's public IP or hostname
-#   OCI_SSH_USER       — SSH username (e.g. "ubuntu" or "opc")
-#   OCI_SSH_KEY        — SSH private key (PEM) matching a public key authorized on the instance
-#   TALONI_API_KEY     — the API key the deployed server should require (Authorization: Bearer)
+#   OCI_HOST           — the compute instance's public IP or hostname
+#   OCI_SSH_USER        — SSH username (e.g. "ubuntu" or "opc")
+#   OCI_SSH_KEY         — SSH private key (PEM) matching a public key authorized on the instance
 #
-# Optional secrets:
-#   OCI_DEPLOY_PATH    — remote directory to deploy into (default: /opt/taloni)
-#   OCI_DOMAIN         — if set, deploys behind Caddy with automatic Let's Encrypt TLS on 443
-#   SUP_DOMAIN         — hostname for the StraightUpProgress site sharing this same Caddy
-#                        (separate project/repo — see ../StraightUpProgress/DEPLOYMENT.md)
-#   SUB_DOMAIN         — hostname for the StraightUpBeats site sharing this same Caddy
-#                        (separate project/repo — see ../StraightUpBeats/DEPLOYMENT.md)
-#   KUL_DOMAIN         — hostname for the Kuulutin site sharing this same Caddy
-#                        (separate project/repo — see ../Kuulutin/DEPLOYMENT.md)
+# Optional secrets (each is a sibling app's hostname sharing this Caddy — set the ones that
+# exist so far, add more as new sibling apps come online):
+#   OCI_DEPLOY_PATH     — remote directory to deploy into (default: /opt/taloni)
+#   SUP_DOMAIN          — StraightUpProgress (see ../StraightUpProgress/DEPLOYMENT.md)
+#   SUB_DOMAIN          — StraightUpBeats (see ../StraightUpBeats/DEPLOYMENT.md)
+#   KUL_DOMAIN          — Kuulutin (see ../Kuulutin/DEPLOYMENT.md)
 #
 # The instance needs Docker + the Docker Compose plugin installed and the deploy user in the
 # `docker` group. See DEPLOYMENT.md for the one-time server setup.
@@ -23,13 +21,6 @@
 # NOTE: the `secrets` context can't be read directly in a job-level `if:` (GitHub Actions
 # restriction), so the "ready" check below reads secrets into env vars in a step and gates
 # every later step on that step's output instead — the documented workaround.
-#
-# NOTE: builds natively on a GitHub-hosted arm64 runner (ubuntu-24.04-arm), matching OCI's
-# free-tier Ampere shape. An earlier version cross-built for amd64+arm64 via buildx/QEMU
-# emulation from an amd64 runner; the arm64 leg under emulation took 10+ minutes (vs ~2 min
-# total natively) with no way to see progress mid-build, so this deploy targets arm64 only.
-# If you're deploying to an amd64 host instead, change `runs-on` back to `ubuntu-latest` and
-# drop `--platform linux/arm64` from the build step below.
 
 name: Deploy to OCI
 
@@ -37,20 +28,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - 'Dockerfile'
       - 'docker-compose.yml'
       - 'Caddyfile'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'tsup.config.ts'
       - '.github/workflows/deploy-oci.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   deploy:
@@ -59,9 +43,7 @@ jobs:
       OCI_HOST: ${{ secrets.OCI_HOST }}
       OCI_SSH_USER: ${{ secrets.OCI_SSH_USER }}
       OCI_SSH_KEY: ${{ secrets.OCI_SSH_KEY }}
-      TALONI_API_KEY: ${{ secrets.TALONI_API_KEY }}
       OCI_DEPLOY_PATH: ${{ secrets.OCI_DEPLOY_PATH }}
-      OCI_DOMAIN: ${{ secrets.OCI_DOMAIN }}
       SUP_DOMAIN: ${{ secrets.SUP_DOMAIN }}
       SUB_DOMAIN: ${{ secrets.SUB_DOMAIN }}
       KUL_DOMAIN: ${{ secrets.KUL_DOMAIN }}
@@ -69,7 +51,7 @@ jobs:
       - name: Check required secrets are set
         id: check
         run: |
-          if [ -z "$OCI_HOST" ] || [ -z "$OCI_SSH_USER" ] || [ -z "$OCI_SSH_KEY" ] || [ -z "$TALONI_API_KEY" ]; then
+          if [ -z "$OCI_HOST" ] || [ -z "$OCI_SSH_USER" ] || [ -z "$OCI_SSH_KEY" ]; then
             echo "Required secrets are not all set yet — skipping deploy. See DEPLOYMENT.md."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           else
@@ -78,17 +60,6 @@ jobs:
 
       - uses: actions/checkout@v4
         if: steps.check.outputs.ready == 'true'
-
-      - name: Build and push image (native arm64)
-        if: steps.check.outputs.ready == 'true'
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          docker build \
-            -t ghcr.io/${{ github.repository_owner }}/taloni:latest \
-            -t ghcr.io/${{ github.repository_owner }}/taloni:${{ github.sha }} \
-            .
-          docker push ghcr.io/${{ github.repository_owner }}/taloni:latest
-          docker push ghcr.io/${{ github.repository_owner }}/taloni:${{ github.sha }}
 
       - name: Set up SSH
         if: steps.check.outputs.ready == 'true'
@@ -106,8 +77,6 @@ jobs:
           scp -i ~/.ssh/deploy_key docker-compose.yml Caddyfile \
             "$OCI_SSH_USER@$OCI_HOST:$DEPLOY_PATH/"
           ssh -i ~/.ssh/deploy_key "$OCI_SSH_USER@$OCI_HOST" "cat > $DEPLOY_PATH/.env" <<EOF
-          TALONI_API_KEY=$TALONI_API_KEY
-          DOMAIN=$OCI_DOMAIN
           SUP_DOMAIN=$SUP_DOMAIN
           SUB_DOMAIN=$SUB_DOMAIN
           KUL_DOMAIN=$KUL_DOMAIN
@@ -117,13 +86,10 @@ jobs:
         if: steps.check.outputs.ready == 'true'
         run: |
           DEPLOY_PATH="${OCI_DEPLOY_PATH:-/opt/taloni}"
-          PROFILE_FLAG=""
-          [ -n "$OCI_DOMAIN" ] && PROFILE_FLAG="--profile proxy"
           ssh -i ~/.ssh/deploy_key "$OCI_SSH_USER@$OCI_HOST" "
             set -e
             docker network create frontdoor 2>/dev/null || true
             cd $DEPLOY_PATH
-            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
-            docker compose pull taloni
-            docker compose $PROFILE_FLAG up -d
+            docker compose pull caddy
+            docker compose --profile proxy up -d
           "
