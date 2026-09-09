@@ -19,6 +19,8 @@ services:
       KUL_DOMAIN: ${KUL_DOMAIN:-kul.localhost}
       # landing zone (shared OAuth/sync service), same pattern. See ../landingzone/DEPLOYMENT.md.
       LZ_DOMAIN: ${LZ_DOMAIN:-lz.localhost}
+      # StraightUpHouses, same pattern. See ../StraightUpHouses/DEPLOYMENT.md.
+      SUH_DOMAIN: ${SUH_DOMAIN:-suh.localhost}
     ports:
       - '80:80'
       - '443:443'

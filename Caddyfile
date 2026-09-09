@@ -23,3 +23,8 @@
 {$LZ_DOMAIN:lz.localhost} {
 	reverse_proxy landingzone:3000
 }
+
+# StraightUpHouses (separate project, same OCI instance) — see its own DEPLOYMENT.md.
+{$SUH_DOMAIN:suh.localhost} {
+	reverse_proxy straightuphouses:3000
+}

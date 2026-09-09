@@ -15,6 +15,7 @@
 #   SUB_DOMAIN          — StraightUpBeats (see ../StraightUpBeats/DEPLOYMENT.md)
 #   KUL_DOMAIN          — Kuulutin (see ../Kuulutin/DEPLOYMENT.md)
 #   LZ_DOMAIN           — landing zone (see ../landingzone/DEPLOYMENT.md)
+#   SUH_DOMAIN          — StraightUpHouses (see ../StraightUpHouses/DEPLOYMENT.md)
 #
 # The instance needs Docker + the Docker Compose plugin installed and the deploy user in the
 # `docker` group. See DEPLOYMENT.md for the one-time server setup.
@@ -49,6 +50,7 @@ jobs:
       SUB_DOMAIN: ${{ secrets.SUB_DOMAIN }}
       KUL_DOMAIN: ${{ secrets.KUL_DOMAIN }}
       LZ_DOMAIN: ${{ secrets.LZ_DOMAIN }}
+      SUH_DOMAIN: ${{ secrets.SUH_DOMAIN }}
     steps:
       - name: Check required secrets are set
         id: check
@@ -83,6 +85,7 @@ jobs:
           SUB_DOMAIN=$SUB_DOMAIN
           KUL_DOMAIN=$KUL_DOMAIN
           LZ_DOMAIN=$LZ_DOMAIN
+          SUH_DOMAIN=$SUH_DOMAIN
           EOF
 
       - name: Deploy
