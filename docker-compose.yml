@@ -17,6 +17,8 @@ services:
       SUB_DOMAIN: ${SUB_DOMAIN:-sub.localhost}
       # Kuulutin, same pattern. See ../Kuulutin/DEPLOYMENT.md.
       KUL_DOMAIN: ${KUL_DOMAIN:-kul.localhost}
+      # landing zone (shared OAuth/sync service), same pattern. See ../landingzone/DEPLOYMENT.md.
+      LZ_DOMAIN: ${LZ_DOMAIN:-lz.localhost}
     ports:
       - '80:80'
       - '443:443'

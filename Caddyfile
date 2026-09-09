@@ -17,3 +17,9 @@
 {$KUL_DOMAIN:kul.localhost} {
 	reverse_proxy kuulutin:80
 }
+
+# landing zone — shared OAuth/cross-device-sync service (separate project, same OCI
+# instance) — see its own DEPLOYMENT.md.
+{$LZ_DOMAIN:lz.localhost} {
+	reverse_proxy landingzone:3000
+}

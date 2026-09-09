@@ -77,6 +77,7 @@ Settings → Secrets and variables → Actions → New repository secret:
 | `SUP_DOMAIN` | no | Hostname for StraightUpProgress — see its own `DEPLOYMENT.md` |
 | `SUB_DOMAIN` | no | Hostname for StraightUpBeats — see its own `DEPLOYMENT.md` |
 | `KUL_DOMAIN` | no | Hostname for Kuulutin — see its own `DEPLOYMENT.md` |
+| `LZ_DOMAIN` | no | Hostname for landing zone — see its own `DEPLOYMENT.md` |
 
 GitHub secrets are write-only — they can't be copied between repos via `gh`, only re-entered from
 the values above.
